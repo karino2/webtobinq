@@ -16,6 +16,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextBox;
 import com.google.gwt.user.client.ui.VerticalPanel;
+import com.googlecode.gchart.client.GChart;
 
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.*;
@@ -45,26 +46,41 @@ public class WebTobinQ implements EntryPoint {
    * This is the entry point method.
    */
   public void onModuleLoad() {
-	  CharStream input= new ANTLRStringStream("2x^3 + x^5 + 4x + 10x + 8x + x + 2");
-		QLexer lex = new QLexer(input);
-		CommonTokenStream tokens = new CommonTokenStream(lex);
-		QParser parser = new QParser(tokens);
-		try
-		{
-		 	QParser.poly_return r = parser.poly();
-			
-			parseResult = "tree="+((Tree)r.tree).toStringTree();
-		}
-		catch(org.antlr.runtime.RecognitionException e)
-		{}
+	  // begin antlr test
+	CharStream input= new ANTLRStringStream("2x^3 + x^5 + 4x + 10x + 8x + x + 2");
+	QLexer lex = new QLexer(input);
+	CommonTokenStream tokens = new CommonTokenStream(lex);
+	QParser parser = new QParser(tokens);
+	try
+	{
+	 	QParser.poly_return r = parser.poly();
 		
-		// System.out.println("tree="+((Tree)r.tree).toStringTree());
+		parseResult = "tree="+((Tree)r.tree).toStringTree();
+	}
+	catch(org.antlr.runtime.RecognitionException e)
+	{}
+    final Label resultLabel = new Label(parseResult);
+    RootPanel.get("resultLabelContainer").add(resultLabel);
+	    // end antlr test
+	
+    // begin GChart test
+    GChart chart = new GChart();
+    chart.setChartTitle("<b>x<sup>2</sup> vs x</b>");
+    chart.setChartSize(150, 150);
+    chart.addCurve();
+    for (int i = 0; i < 10; i++) 
+    	chart.getCurve().addPoint(i,i*i);
+    chart.getCurve().setLegendLabel("x<sup>2</sup>");
+    chart.getXAxis().setAxisLabel("x");
+    chart.getYAxis().setAxisLabel("x<sup>2</sup>");
+    RootPanel.get("chartContainer").add(chart);
+    chart.update();
+    // end GChart test
 
 	  
     final Button sendButton = new Button( messages.sendButton() );
     final TextBox nameField = new TextBox();
     nameField.setText( messages.nameField() );
-    final Label resultLabel = new Label(parseResult);
     final Label errorLabel = new Label();
 
     // We can add style names to widgets
@@ -75,7 +91,6 @@ public class WebTobinQ implements EntryPoint {
     RootPanel.get("nameFieldContainer").add(nameField);
     RootPanel.get("sendButtonContainer").add(sendButton);
     RootPanel.get("errorLabelContainer").add(errorLabel);
-    RootPanel.get("resultLabelContainer").add(resultLabel);
 
     // Focus the cursor on the name field when the app loads
     nameField.setFocus(true);
