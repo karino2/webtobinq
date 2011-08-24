@@ -67,6 +67,18 @@
     	<artifactId>gchart</artifactId>
     	<version>1.0</version>
     </dependency>
+    <dependency>
+    	<groupId>net.kindleit</groupId>
+    	<artifactId>gae-runtime</artifactId>
+		<version>1.5.2</version>
+		<type>pom</type>
+		<exclusions>
+		   <exclusion>
+		     <artifactId>appengine-tools-sdk</artifactId>
+		     <groupId>com.google.appengine</groupId>
+		   </exclusion>
+	    </exclusions>
+    </dependency>
   </dependencies>
 
   <build>
@@ -96,6 +108,9 @@
           <runTarget>WebTobinQ.html</runTarget>
           <hostedWebapp>${webappDirectory}</hostedWebapp>
           <i18nMessagesBundle>com.appspot.WebTobinQ.client.Messages</i18nMessagesBundle>
+          <server>com.google.appengine.tools.development.gwt.AppEngineLauncher</server>
+          <appEngineHome>${gae.home}</appEngineHome>
+		  <appEngineVersion>${gaeVersion}</appEngineVersion>
         </configuration>
       </plugin>
 

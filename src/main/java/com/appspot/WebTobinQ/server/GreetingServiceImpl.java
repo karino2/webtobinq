@@ -2,6 +2,7 @@ package com.appspot.WebTobinQ.server;
 
 import com.appspot.WebTobinQ.client.GreetingService;
 import com.appspot.WebTobinQ.shared.FieldVerifier;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.gwt.user.server.rpc.RemoteServiceServlet;
 
 /**
@@ -27,8 +28,11 @@ public class GreetingServiceImpl extends RemoteServiceServlet implements
     input = escapeHtml(input);
     userAgent = escapeHtml(userAgent);
 
+    long itemsCounts = MemcacheServiceFactory.getMemcacheService().getStatistics().getItemCount();
+   
     return "Hello, " + input + "!<br><br>I am running " + serverInfo
-        + ".<br><br>It looks like you are using:<br>" + userAgent;
+        + ".<br><br>It looks like you are using:<br>" + userAgent
+        + "<br>Cache has " + itemsCounts + " entries";
   }
 
   /**
