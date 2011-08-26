@@ -10,7 +10,11 @@ h1 {
   text-align: center;
 }
 
-.sendButton {
+.evalButton {
+  display: block;
+  font-size: 16pt;
+}
+.clearButton {
   display: block;
   font-size: 16pt;
 }

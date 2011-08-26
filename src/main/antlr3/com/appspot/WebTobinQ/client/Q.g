@@ -47,9 +47,15 @@ REPEAT='repeat';
 
 // main
 //	|	error
+/*
 prog	:	EOF
 	|	'\n'
 	|	expr_or_assign ('\n' | ';')
+	;
+	*/
+prog	: EOF
+	| '\n'
+	| expr_or_assign (('\n' |';') expr_or_assign)*
 	;
 
 expr_or_assign  :    expr (EQ_ASSIGN expr_or_assign)?
