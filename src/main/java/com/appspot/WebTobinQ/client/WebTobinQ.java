@@ -47,13 +47,13 @@ public class WebTobinQ implements EntryPoint {
    */
   public void onModuleLoad() {
 	  // begin antlr test
-	CharStream input= new ANTLRStringStream("2x^3 + x^5 + 4x + 10x + 8x + x + 2");
+	CharStream input= new ANTLRStringStream("x <- c(2,3,7,9)");
 	QLexer lex = new QLexer(input);
 	CommonTokenStream tokens = new CommonTokenStream(lex);
 	QParser parser = new QParser(tokens);
 	try
 	{
-	 	QParser.poly_return r = parser.poly();
+	 	QParser.prog_return r = parser.prog();
 		
 		parseResult = "tree="+((Tree)r.tree).toStringTree();
 	}

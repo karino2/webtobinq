@@ -45,6 +45,173 @@ REPEAT='repeat';
 
 
 
+// main
+//	|	error
+prog	:	'\n'
+	|	expr_or_assign ('\n' | ';')
+	;
+
+expr_or_assign  :    expr (EQ_ASSIGN expr_or_assign)?
+                ;
+
+equal_assign    :    expr EQ_ASSIGN expr_or_assign
+                ;
+
+
+// end unaryExpression
+
+symbol_or_const 
+	: SYMBOL | STR_CONST;
+
+lexpr : 	NUM_CONST
+	|	STR_CONST
+	|	NULL_CONST
+	|	SYMBOL
+	|	'{' expr_or_assign ((';' expr_or_assign?) | ('\n' expr_or_assign?))* '}'
+	|	'(' expr_or_assign ')'
+	|  ('-' | '+' | '!' | '~' | '?' ) expr
+	|	FUNCTION '('
+//formlist
+		   (SYMBOL | SYMBOL EQ_ASSIGN expr) (',' (SYMBOL | SYMBOL EQ_ASSIGN expr))*
+		 ')' cr expr_or_assign
+	|	IF ifcond expr_or_assign (ELSE expr_or_assign)?
+	|	FOR forcond expr_or_assign
+	|	WHILE cond expr_or_assign
+	|	REPEAT expr_or_assign
+	|	SYMBOL NS_GET symbol_or_const
+	|	STR_CONST NS_GET symbol_or_const
+	|	SYMBOL NS_GET_INT symbol_or_const
+	|	STR_CONST NS_GET_INT symbol_or_const
+	|	NEXT
+	|	BREAK
+	;
+
+expr	: lexpr
+	    (
+		((':' | '+' | '-' | '*' |  '/' | '^' | SPECIAL | '%' | '~' 
+			| '?' | LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 
+			| LEFT_ASSIGN | RIGHT_ASSIGN) expr)
+		|'('
+// sublist
+			(
+			|	expr
+			|	SYMBOL EQ_ASSIGN
+			|	SYMBOL EQ_ASSIGN expr
+			|	STR_CONST EQ_ASSIGN
+			|	STR_CONST EQ_ASSIGN expr
+			|	NULL_CONST EQ_ASSIGN
+			|	NULL_CONST EQ_ASSIGN expr
+			)
+			(cr ','	(
+			|	expr
+			|	SYMBOL EQ_ASSIGN
+			|	SYMBOL EQ_ASSIGN expr
+			|	STR_CONST EQ_ASSIGN
+			|	STR_CONST EQ_ASSIGN expr
+			|	NULL_CONST EQ_ASSIGN
+			|	NULL_CONST EQ_ASSIGN expr
+			)
+		     )*
+		 ')'
+		| LBB
+		// sublist
+			(
+			|	expr
+			|	SYMBOL EQ_ASSIGN
+			|	SYMBOL EQ_ASSIGN expr
+			|	STR_CONST EQ_ASSIGN
+			|	STR_CONST EQ_ASSIGN expr
+			|	NULL_CONST EQ_ASSIGN
+			|	NULL_CONST EQ_ASSIGN expr
+			)  (cr ',' 
+				(
+				|	expr
+				|	SYMBOL EQ_ASSIGN
+				|	SYMBOL EQ_ASSIGN expr
+				|	STR_CONST EQ_ASSIGN
+				|	STR_CONST EQ_ASSIGN expr
+				|	NULL_CONST EQ_ASSIGN
+				|	NULL_CONST EQ_ASSIGN expr
+				)
+			     )*
+		  ']' ']'
+		| '['
+		// sublist
+			(
+			|	expr
+			|	SYMBOL EQ_ASSIGN
+			|	SYMBOL EQ_ASSIGN expr
+			|	STR_CONST EQ_ASSIGN
+			|	STR_CONST EQ_ASSIGN expr
+			|	NULL_CONST EQ_ASSIGN
+			|	NULL_CONST EQ_ASSIGN expr
+			)  (cr ',' 
+				(
+				|	expr
+				|	SYMBOL EQ_ASSIGN
+				|	SYMBOL EQ_ASSIGN expr	
+				|	STR_CONST EQ_ASSIGN
+				|	STR_CONST EQ_ASSIGN expr
+				|	NULL_CONST EQ_ASSIGN
+				|	NULL_CONST EQ_ASSIGN expr
+				)
+			     )*
+ 			 ']'
+		| ('$' | '@') symbol_or_const
+	  )?
+	;
+
+
+cond	:	'(' expr ')'
+	;
+
+ifcond	:	'(' expr ')'
+	;
+
+forcond :	'(' SYMBOL IN expr ')'
+	;
+
+
+/*
+exprlist:
+	|	expr_or_assign
+	|	exprlist ';' expr_or_assign
+	|	exprlist ';'
+	|	exprlist '\n' expr_or_assign
+	|	exprlist '\n'
+	;
+*/
+
+/*
+sublist	:	sub
+	|	sublist cr ',' sub
+	;
+*/
+
+/*
+sub	:
+	|	expr
+	|	SYMBOL EQ_ASSIGN
+	|	SYMBOL EQ_ASSIGN expr
+	|	STR_CONST EQ_ASSIGN
+	|	STR_CONST EQ_ASSIGN expr
+	|	NULL_CONST EQ_ASSIGN
+	|	NULL_CONST EQ_ASSIGN expr
+	;
+*/
+
+/*
+formlist:
+	|	SYMBOL
+	|	SYMBOL EQ_ASSIGN expr
+	|	formlist ',' SYMBOL
+	|	formlist ',' SYMBOL EQ_ASSIGN expr
+	;
+*/
+
+cr	: '\r'? '\n'
+	;
+
 // LEXER
 // These might be not compatible
 
@@ -183,176 +350,5 @@ SPECIAL
 	;
 
 // end LEXER
-
-// main
-//	|	error
-prog	:	'\n'
-	|	expr_or_assign ('\n' | ';')
-	;
-
-expr_or_assign  :    expr (EQ_ASSIGN expr_or_assign)?
-                ;
-
-equal_assign    :    expr EQ_ASSIGN expr_or_assign
-                ;
-
-
-// end unaryExpression
-
-symbol_or_const 
-	: SYMBOL | STR_CONST;
-
-lexpr : 	NUM_CONST
-	|	STR_CONST
-	|	NULL_CONST
-	|	SYMBOL
-
-	|	'{' expr_or_assign ((';' expr_or_assign?) | ('\n' expr_or_assign?))* '}'
-	|	'(' expr_or_assign ')'
-	|  ('-' | '+' | '!' | '~' | '?' ) expr
-	|	FUNCTION '('
-//formlist
-		   (SYMBOL | SYMBOL EQ_ASSIGN expr) (',' (SYMBOL | SYMBOL EQ_ASSIGN expr))*
-		 ')' cr expr_or_assign
-	|	IF ifcond expr_or_assign (ELSE expr_or_assign)?
-	|	FOR forcond expr_or_assign
-	|	WHILE cond expr_or_assign
-	|	REPEAT expr_or_assign
-	|	SYMBOL NS_GET symbol_or_const
-	|	STR_CONST NS_GET symbol_or_const
-	|	SYMBOL NS_GET_INT symbol_or_const
-	|	STR_CONST NS_GET_INT symbol_or_const
-	|	NEXT
-	|	BREAK
-
-	;
-
-expr	: 
-	lexpr (
-		((':' | '+' | '-' | '*' |  '/' | '^' | SPECIAL | '%' | '~' 
-			| '?' | LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 
-			| LEFT_ASSIGN | RIGHT_ASSIGN) expr)
-		|'('
-// sublist
-			(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)
-			(cr ','	(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)
-		     )*
-		 ')'
-		)?
-		| LBB
-		// sublist
-			(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)  (cr ',' 
-				(
-				|	expr
-				|	SYMBOL EQ_ASSIGN
-				|	SYMBOL EQ_ASSIGN expr
-				|	STR_CONST EQ_ASSIGN
-				|	STR_CONST EQ_ASSIGN expr
-				|	NULL_CONST EQ_ASSIGN
-				|	NULL_CONST EQ_ASSIGN expr
-				)
-			     )*
-		  ']' ']'
-		| '['
-		// sublist
-			(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)  (cr ',' 
-				(
-				|	expr
-				|	SYMBOL EQ_ASSIGN
-				|	SYMBOL EQ_ASSIGN expr	
-				|	STR_CONST EQ_ASSIGN
-				|	STR_CONST EQ_ASSIGN expr
-				|	NULL_CONST EQ_ASSIGN
-				|	NULL_CONST EQ_ASSIGN expr
-				)
-			     )*
- 			 ']'
-		| ('$' | '@') SYMBOL
-		| ('$' | '@') STR_CONST
-
-	;
-
-
-cond	:	'(' expr ')'
-	;
-
-ifcond	:	'(' expr ')'
-	;
-
-forcond :	'(' SYMBOL IN expr ')'
-	;
-
-
-/*
-exprlist:
-	|	expr_or_assign
-	|	exprlist ';' expr_or_assign
-	|	exprlist ';'
-	|	exprlist '\n' expr_or_assign
-	|	exprlist '\n'
-	;
-*/
-
-/*
-sublist	:	sub
-	|	sublist cr ',' sub
-	;
-*/
-
-/*
-sub	:
-	|	expr
-	|	SYMBOL EQ_ASSIGN
-	|	SYMBOL EQ_ASSIGN expr
-	|	STR_CONST EQ_ASSIGN
-	|	STR_CONST EQ_ASSIGN expr
-	|	NULL_CONST EQ_ASSIGN
-	|	NULL_CONST EQ_ASSIGN expr
-	;
-*/
-
-/*
-formlist:
-	|	SYMBOL
-	|	SYMBOL EQ_ASSIGN expr
-	|	formlist ',' SYMBOL
-	|	formlist ',' SYMBOL EQ_ASSIGN expr
-	;
-*/
-
-cr	: '\r'? '\n'
-	;
 
 
