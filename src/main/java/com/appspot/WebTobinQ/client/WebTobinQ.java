@@ -47,7 +47,7 @@ public class WebTobinQ implements EntryPoint {
    */
   public void onModuleLoad() {
 	  // begin antlr test
-	CharStream input= new ANTLRStringStream("x <- c(2,3,7,9)");
+	CharStream input= new ANTLRStringStream("x <- c(2,3,7,9)\n");
 	QLexer lex = new QLexer(input);
 	CommonTokenStream tokens = new CommonTokenStream(lex);
 	QParser parser = new QParser(tokens);
