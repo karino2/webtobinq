@@ -47,7 +47,8 @@ REPEAT='repeat';
 
 // main
 //	|	error
-prog	:	'\n'
+prog	:	EOF
+	|	'\n'
 	|	expr_or_assign ('\n' | ';')
 	;
 
@@ -63,7 +64,7 @@ equal_assign    :    expr EQ_ASSIGN expr_or_assign
 symbol_or_const 
 	: SYMBOL | STR_CONST;
 
-lexpr : 	NUM_CONST
+lexpr : 	num_const
 	|	STR_CONST
 	|	NULL_CONST
 	|	SYMBOL
@@ -103,15 +104,15 @@ expr	: lexpr
 			|	NULL_CONST EQ_ASSIGN expr
 			)
 			(cr ','	(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)
-		     )*
+				|	expr
+				|	SYMBOL EQ_ASSIGN
+				|	SYMBOL EQ_ASSIGN expr
+				|	STR_CONST EQ_ASSIGN
+				|	STR_CONST EQ_ASSIGN expr
+				|	NULL_CONST EQ_ASSIGN
+				|	NULL_CONST EQ_ASSIGN expr
+				)
+		        )*
 		 ')'
 		| LBB
 		// sublist
@@ -209,20 +210,17 @@ formlist:
 	;
 */
 
-cr	: '\r'? '\n'
+cr	:
 	;
 
 // LEXER
 // These might be not compatible
 
-//NUM_CONST
-fragment
+//num_const
 HexLiteral : '0' ('x'|'X') HexDigit+ IntegerTypeSuffix? ;
 
-fragment
 DecimalLiteral : ('0' | '1'..'9' '0'..'9'*) IntegerTypeSuffix? ;
 
-fragment
 OctalLiteral : '0' ('0'..'7')+ IntegerTypeSuffix? ;
 
 fragment
@@ -245,14 +243,14 @@ Exponent : ('e'|'E') ('+'|'-')? ('0'..'9')+ ;
 fragment
 FloatTypeSuffix : ('f'|'F'|'d'|'D') ;
 
-IntegerLiteral : HexLiteral
+integerLiteral : HexLiteral
     |   OctalLiteral
     |   DecimalLiteral
 	;
 
 
-NUM_CONST
-	: IntegerLiteral
+num_const
+	: integerLiteral
 	| FloatingPointLiteral
 	| 'NA'
 	| 'TRUE'
@@ -267,7 +265,7 @@ NUM_CONST
 
 
 
-// end NUM_CONST
+// end num_const
 // STR_CONST
 
 
