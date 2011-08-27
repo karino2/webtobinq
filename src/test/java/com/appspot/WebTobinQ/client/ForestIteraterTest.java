@@ -50,37 +50,37 @@ public class ForestIteraterTest {
 		
 		ForestIterater iter = new ForestIterater(a);
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Leading, a, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Leading, a, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Leading, b, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Leading, b, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Leading, d, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Leading, d, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Trailing, d, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Trailing, d, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Leading, e, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Leading, e, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Trailing, e, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Trailing, e, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Trailing, b, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Trailing, b, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Leading, c, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Leading, c, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Trailing, c, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Trailing, c, iter.next());
 		
-		assertTrue(iter.hasMoreElements());
-		assertNode(Edge.Trailing, a, iter.nextElement());
+		assertTrue(iter.hasNext());
+		assertNode(Edge.Trailing, a, iter.next());
 		
-		assertFalse(iter.hasMoreElements());
+		assertFalse(iter.hasNext());
 	}
 	
 	void assertNode(Edge expectE, Tree expectNode, ForestNode actual)

@@ -1,12 +1,12 @@
 package com.appspot.WebTobinQ.client;
 
-import java.util.Enumeration;
+import java.util.Iterator;
 
 import org.antlr.runtime.tree.Tree;
 
 import com.appspot.WebTobinQ.client.ForestNode.Edge;
 
-public class ForestIterater implements Enumeration<ForestNode> {
+public class ForestIterater implements Iterable<ForestNode>, Iterator<ForestNode>{
 
 	Tree _root;
 	ForestNode _current;
@@ -17,12 +17,17 @@ public class ForestIterater implements Enumeration<ForestNode> {
 		_current = null;
 	}
 	
-	public boolean hasMoreElements() {
+
+	public Iterator<ForestNode> iterator() {
+		return this;
+	}
+
+	public boolean hasNext() {
 		return (_current == null) || !(_current.getEdge() == Edge.Trailing &&
 				_current.getNode() == _root);
 	}
 
-	public ForestNode nextElement() {
+	public ForestNode next() {
 		if(_current == null)
 		{
 			_current = new ForestNode(Edge.Leading, _root);
@@ -51,5 +56,9 @@ public class ForestIterater implements Enumeration<ForestNode> {
 		// last sibling, go up ward.
 		_current = new ForestNode(Edge.Trailing, parent);
 		return _current;
+	}
+
+	public void remove() {
+		throw new UnsupportedOperationException();
 	}
 }
