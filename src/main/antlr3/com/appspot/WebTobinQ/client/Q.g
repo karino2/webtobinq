@@ -53,8 +53,8 @@ prog	:	EOF
 	|	expr_or_assign ('\n' | ';')
 	;
 	*/
-prog	: 
-	| expr_or_assign (('\n' |';') expr_or_assign)* EOF
+
+prog	: ('\n' | ';')* expr_or_assign  (('\n' | ';')+ expr_or_assign ('\n' | ';')*)*
 	;
 
 expr_or_assign  :    expr (EQ_ASSIGN expr_or_assign)?
