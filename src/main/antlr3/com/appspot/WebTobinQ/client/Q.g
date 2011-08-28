@@ -34,6 +34,39 @@ OR2='||';
 RIGHT_ASSIGN='->';
 WHILE='while';
 REPEAT='repeat';
+// imaginary, from gram.y function name in R source.
+XXVALUE;
+XXBINARY;
+XXEXPRLIST;
+XXPAREN;
+XXUNARY;
+XXBINARY;
+XXDEFUN;
+XXFUNCALL;
+XXIF;
+XXIFLESE;
+XXWHILE;
+XXREPEAT;
+XXSUBSCRIPT;
+XXBINARY;
+XXNXTBRK;
+XXCOND;
+XXIFCOND;
+XXFORCOND;
+XXEXPRLIST0;
+XXEXPRLIST1;
+XXEXPRLIST2;
+XXSUBLIST1;
+XXSUBLIST2;
+XXSUB0;
+XXSUB1;
+XXSYMSUB0;
+XXSYMSUB1;
+XXNULLSUB0;
+XXNULLSUB1;
+XXFORMAL0;
+XXFORMAL1;
+XXFORMALLIST;
 }
 
 @header {
@@ -54,32 +87,44 @@ prog	:	EOF
 	;
 	*/
 
-prog	: ('\n' | ';')* expr_or_assign  (('\n' | ';')+ expr_or_assign ('\n' | ';')*)*
+prog	: ('\n' | ';')* (fexp=expr_or_assign -> ^(XXVALUE $fexp))
+			(('\n' | ';')+ (cexp = expr_or_assign)('\n' | ';')*
+			   ->^(XXVALUE $cexp)
+			 )*
+		
 	;
 
-expr_or_assign  :    expr (EQ_ASSIGN expr_or_assign)?
+expr_or_assign  :    (expr->expr) (EQ_ASSIGN expr_or_assign -> ^(XXBINARY expr expr_or_assign))?
                 ;
-
-equal_assign    :    expr EQ_ASSIGN expr_or_assign
-                ;
-
-
-// end unaryExpression
 
 symbol_or_const 
 	: SYMBOL | STR_CONST;
+
+unary_op 
+	:	 ('-'| '+' | '!' | '~' | '?')
+	;
+
+formalarg : SYMBOL -> ^(XXFORMAL0 SYMBOL)
+	| SYMBOL EQ_ASSIGN expr -> ^(XXFORMAL1 SYMBOL expr)
+	;
+
+formlist: formalarg*
+	  -> ^(XXFORMALLIST formalarg*)
+	;
+
 
 lexpr : 	num_const
 	|	STR_CONST
 	|	NULL_CONST
 	|	SYMBOL
 	|	'{' expr_or_assign ((';' expr_or_assign?) | ('\n' expr_or_assign?))* '}'
+		-> ^(XXEXPRLIST expr_or_assign+)
 	|	'(' expr_or_assign ')'
-	|  ('-' | '+' | '!' | '~' | '?' ) expr
-	|	FUNCTION '('
-//formlist
-		   (SYMBOL | SYMBOL EQ_ASSIGN expr) (',' (SYMBOL | SYMBOL EQ_ASSIGN expr))*
-		 ')' cr expr_or_assign
+		-> ^(XXPAREN expr_or_assign)
+	|  unary_op expr
+		-> ^(XXUNARY unary_op expr)
+	|	FUNCTION '(' formlist ')' cr expr_or_assign
+		-> ^(XXDEFUN formlist expr_or_assign)
 	|	IF ifcond expr_or_assign (ELSE expr_or_assign)?
 	|	FOR forcond expr_or_assign
 	|	WHILE cond expr_or_assign
