@@ -16,7 +16,7 @@ public class ForestNode {
 		_edge = edge;
 		_node = node;
 	}
-	public Tree getNode()
+	public Tree getElement()
 	{
 		return _node;
 	}

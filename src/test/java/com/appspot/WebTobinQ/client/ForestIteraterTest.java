@@ -86,6 +86,6 @@ public class ForestIteraterTest {
 	void assertNode(Edge expectE, Tree expectNode, ForestNode actual)
 	{
 		assertEquals(expectE, actual.getEdge());
-		assertEquals(expectNode, actual.getNode());
+		assertEquals(expectNode, actual.getElement());
 	}
 }

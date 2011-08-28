@@ -24,7 +24,12 @@ public class ForestIterater implements Iterable<ForestNode>, Iterator<ForestNode
 
 	public boolean hasNext() {
 		return (_current == null) || !(_current.getEdge() == Edge.Trailing &&
-				_current.getNode() == _root);
+				_current.getElement() == _root);
+	}
+	
+	public void changeEdge()
+	{
+		_current = new ForestNode(Edge.Trailing, _current.getElement());
 	}
 
 	public ForestNode next() {
@@ -33,7 +38,7 @@ public class ForestIterater implements Iterable<ForestNode>, Iterator<ForestNode
 			_current = new ForestNode(Edge.Leading, _root);
 			return _current;
 		}
-		Tree node = _current.getNode();
+		Tree node = _current.getElement();
 		if(_current.getEdge() == Edge.Leading)
 		{
 			if(node.getChildCount() == 0)
