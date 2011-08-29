@@ -44,7 +44,7 @@ XXBINARY;
 XXDEFUN;
 XXFUNCALL;
 XXIF;
-XXIFLESE;
+XXIFELSE;
 XXWHILE;
 XXREPEAT;
 XXSUBSCRIPT;
@@ -52,12 +52,12 @@ XXBINARY;
 XXNXTBRK;
 XXCOND;
 XXIFCOND;
+XXFOR;
 XXFORCOND;
 XXEXPRLIST0;
 XXEXPRLIST1;
 XXEXPRLIST2;
-XXSUBLIST1;
-XXSUBLIST2;
+XXSUBLIST;
 XXSUB0;
 XXSUB1;
 XXSYMSUB0;
@@ -97,7 +97,7 @@ prog	: ('\n' | ';')* (fexp=expr_or_assign -> ^(XXVALUE $fexp))
 expr_or_assign  :    (expr->expr) (EQ_ASSIGN expr_or_assign -> ^(XXBINARY expr expr_or_assign))?
                 ;
 
-symbol_or_const 
+symbol_or_conststr 
 	: SYMBOL | STR_CONST;
 
 unary_op 
@@ -108,7 +108,7 @@ formalarg : SYMBOL -> ^(XXFORMAL0 SYMBOL)
 	| SYMBOL EQ_ASSIGN expr -> ^(XXFORMAL1 SYMBOL expr)
 	;
 
-formlist: formalarg*
+formlist: (formalarg (',' formalarg)*)?
 	  -> ^(XXFORMALLIST formalarg*)
 	;
 
@@ -125,101 +125,57 @@ lexpr : 	num_const
 		-> ^(XXUNARY unary_op expr)
 	|	FUNCTION '(' formlist ')' cr expr_or_assign
 		-> ^(XXDEFUN formlist expr_or_assign)
-	|	IF ifcond expr_or_assign (ELSE expr_or_assign)?
+	|	IF ifcond ifexp=expr_or_assign (ELSE elexp=expr_or_assign)?
+		-> ^(XXIFELSE ifcond $ifexp $elexp?)
 	|	FOR forcond expr_or_assign
+		-> ^(XXFOR forcond expr_or_assign)
 	|	WHILE cond expr_or_assign
+		-> ^(XXWHILE cond expr_or_assign)
 	|	REPEAT expr_or_assign
-	|	SYMBOL NS_GET symbol_or_const
-	|	STR_CONST NS_GET symbol_or_const
-	|	SYMBOL NS_GET_INT symbol_or_const
-	|	STR_CONST NS_GET_INT symbol_or_const
+		-> ^(XXREPEAT expr_or_assign)
+	|	(fs=symbol_or_conststr) NS_GET (ss=symbol_or_conststr)
+		-> ^(XXBINARY NS_GET $fs $ss)
+	|	(fs=symbol_or_conststr) NS_GET_INT (ss=symbol_or_conststr)
+		-> ^(XXBINARY NS_GET_INT $fs $ss)
 	|	NEXT
+		-> ^(XXNXTBRK NEXT)
 	|	BREAK
+		-> ^(XXNXTBRK BREAK)
+	;
+	
+binary_op
+	:(':'| '+'| '-'| '*' |  '/' | '^' | SPECIAL | '%' | '~' 
+			| '?' | LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 
+			| LEFT_ASSIGN | RIGHT_ASSIGN)
 	;
 
-expr	: lexpr
+
+expr	: (lexpr ->lexpr)
 	    (
-		((':' | '+' | '-' | '*' |  '/' | '^' | SPECIAL | '%' | '~' 
-			| '?' | LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 
-			| LEFT_ASSIGN | RIGHT_ASSIGN) expr)
-		|'('
-// sublist
-			(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)
-			(cr ','	(
-				|	expr
-				|	SYMBOL EQ_ASSIGN
-				|	SYMBOL EQ_ASSIGN expr
-				|	STR_CONST EQ_ASSIGN
-				|	STR_CONST EQ_ASSIGN expr
-				|	NULL_CONST EQ_ASSIGN
-				|	NULL_CONST EQ_ASSIGN expr
-				)
-		        )*
-		 ')'
-		| LBB
-		// sublist
-			(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)  (cr ',' 
-				(
-				|	expr
-				|	SYMBOL EQ_ASSIGN
-				|	SYMBOL EQ_ASSIGN expr
-				|	STR_CONST EQ_ASSIGN
-				|	STR_CONST EQ_ASSIGN expr
-				|	NULL_CONST EQ_ASSIGN
-				|	NULL_CONST EQ_ASSIGN expr
-				)
-			     )*
-		  ']' ']'
-		| '['
-		// sublist
-			(
-			|	expr
-			|	SYMBOL EQ_ASSIGN
-			|	SYMBOL EQ_ASSIGN expr
-			|	STR_CONST EQ_ASSIGN
-			|	STR_CONST EQ_ASSIGN expr
-			|	NULL_CONST EQ_ASSIGN
-			|	NULL_CONST EQ_ASSIGN expr
-			)  (cr ',' 
-				(
-				|	expr
-				|	SYMBOL EQ_ASSIGN
-				|	SYMBOL EQ_ASSIGN expr	
-				|	STR_CONST EQ_ASSIGN
-				|	STR_CONST EQ_ASSIGN expr
-				|	NULL_CONST EQ_ASSIGN
-				|	NULL_CONST EQ_ASSIGN expr
-				)
-			     )*
- 			 ']'
-		| ('$' | '@') symbol_or_const
+		binary_op expr
+		  -> ^(XXBINARY binary_op lexpr expr)
+		|'(' sublist ')'
+		  -> ^(XXFUNCALL lexpr sublist)
+		| LBB sublist ']' ']'
+		  -> ^(XXSUBSCRIPT LBB lexpr sublist)
+		| '[' sublist  ']'
+		  -> ^(XXSUBSCRIPT '[' lexpr sublist)
+		| ('$' | '@') symbol_or_conststr
+		  -> ^(XXBINARY '$'? '@'? lexpr symbol_or_conststr)
 	  )?
 	;
 
 
 cond	:	'(' expr ')'
+	->^(XXCOND expr)
 	;
 
 ifcond	:	'(' expr ')'
+	-> ^(XXIFCOND expr)
 	;
 
 forcond :	'(' SYMBOL IN expr ')'
+	-> ^(XXFORCOND SYMBOL expr)
 	;
 
 
@@ -233,23 +189,17 @@ exprlist:
 	;
 */
 
-/*
-sublist	:	sub
-	|	sublist cr ',' sub
+fragment
+sublist	:	sub (cr ',' sub)*
+		-> ^(XXSUBLIST sub*)
 	;
-*/
 
-/*
-sub	:
-	|	expr
-	|	SYMBOL EQ_ASSIGN
-	|	SYMBOL EQ_ASSIGN expr
-	|	STR_CONST EQ_ASSIGN
-	|	STR_CONST EQ_ASSIGN expr
-	|	NULL_CONST EQ_ASSIGN
-	|	NULL_CONST EQ_ASSIGN expr
+fragment
+sub	: -> ^(XXSUB0)
+	|	expr -> ^(XXSUB1 expr)
+	|	(symbol_or_conststr | NULL_CONST) EQ_ASSIGN -> ^(XXSYMSUB0 symbol_or_conststr? NULL_CONST?)
+	|	(symbol_or_conststr | NULL_CONST) EQ_ASSIGN expr ->^(XXSYMSUB1 symbol_or_conststr? NULL_CONST? expr)
 	;
-*/
 
 /*
 formlist:
@@ -352,7 +302,8 @@ NULL_CONST
 // SYMBOL
 fragment
 Letter
-    :  '\u0024' |
+    :  
+	// '\u0024' |  $ is special character in R
        '\u0041'..'\u005a' |
        '\u005f' |
        '\u0061'..'\u007a' |
