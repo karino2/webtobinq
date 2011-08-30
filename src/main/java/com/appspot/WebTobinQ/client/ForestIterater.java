@@ -27,7 +27,7 @@ public class ForestIterater implements Iterable<ForestNode>, Iterator<ForestNode
 				_current.getElement() == _root);
 	}
 	
-	public void changeEdge()
+	public void skipChildren()
 	{
 		_current = new ForestNode(Edge.Trailing, _current.getElement());
 	}
