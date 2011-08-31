@@ -96,11 +96,52 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalBinary_assign() throws RecognitionException
+	{
+		Tree t = parseExpression("x<-3");
+
+		assertNull(_intp._curEnv.get("x"));
+
+		Object ret = _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
+		assertNull(ret);
+		
+		assertEquals(createInt(3), _intp._curEnv.get("x"));
+	}
+	
+	// TODO: comment in after parser is updated(why not?).
+    //@Test
+	public void test_evalBinary_eqAssign() throws RecognitionException
+	{
+		Tree t = parseExpressionOrAssign("x=3");
+
+		System.out.println(t.toStringTree());
+		//the same as test_evalBinary_assign()...
+		assertNull(_intp._curEnv.get("x"));
+
+		Object ret = _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
+		assertNull(ret);
+		
+		assertEquals(createInt(3), _intp._curEnv.get("x"));
+	}
+	
+	@Test
 	public void test_evalBinary_plus() throws RecognitionException
 	{
 		QObject expected = QObject.createInt(5);
 		Object actual = evalSimpleBinary("2+3");
 		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalBinary_seq() throws RecognitionException
+	{
+		QObject actual = evalSimpleBinary("3:5");
+
+		assertEquals(3, actual.getLength());
+		assertEquals(createInt(3), actual.get(0));
+		assertEquals(createInt(4), actual.get(1));
+		assertEquals(createInt(5), actual.get(2));
+		
 	}
 	
 	@Test
@@ -151,8 +192,7 @@ public class QInterpreterTest {
 	{
 		// (XXSUBLIST (XXSUB1 1) (XXSUB1 2) (XXSUB1 3))
 		Tree subList = buildSubList("c(1, 2, 3)");
-		QInterpreter intp = createInterpreter();
-		QObject ret = intp.evalSubList(subList);
+		QObject ret = _intp.evalSubList(subList);
 
 		assertVector123(ret);
 	}
@@ -212,12 +252,10 @@ public class QInterpreterTest {
 		assertVector123(ret);		
 	}
 
-	private Object evalSimpleBinary(String code) throws RecognitionException {
+	private QObject evalSimpleBinary(String code) throws RecognitionException {
 		Tree t = parseExpression(code);
 		
-		QInterpreter intp = createInterpreter();
-		Object actual = intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
-		return actual;
+		return _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
 	}
 
 	public String getConsoleOutput(QInterpreter intp) {

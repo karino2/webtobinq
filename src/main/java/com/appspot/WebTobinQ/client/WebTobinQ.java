@@ -4,36 +4,67 @@ import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
 import com.google.gwt.user.client.ui.Button;
+import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.RootPanel;
 import com.google.gwt.user.client.ui.TextArea;
+import com.google.gwt.user.client.ui.VerticalPanel;
 import com.googlecode.gchart.client.GChart;
 
 
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class WebTobinQ implements EntryPoint {
+public class WebTobinQ implements EntryPoint, Plotable {
 
+  DialogBox _dialogBox;
+	
+  GChart _chart;
+  /* (non-Javadoc)
+ * @see com.appspot.WebTobinQ.client.Plotable#getChart()
+ */
+  public GChart getChart()
+  {
+	  if(_chart == null)
+		  _chart = new GChart();
+	  return _chart;
+  }
+  
+  /* (non-Javadoc)
+ * @see com.appspot.WebTobinQ.client.Plotable#showChart()
+ */
+  public void showChart()
+  {
+	  // Create the popup dialog box
+	  if(_dialogBox == null){
+		  initDialog();
+	  }
+	  _chart.update();
+	  _dialogBox.show();
+  }
+
+private void initDialog() {
+	_dialogBox = new DialogBox();
+	_dialogBox.setText("Chart");
+	_dialogBox.setAnimationEnabled(true);
+	final Button closeButton = new Button("Close");
+	// We can set the id of a widget by accessing its Element
+	closeButton.getElement().setId("closeButton");
+	VerticalPanel dialogVPanel = new VerticalPanel();
+	dialogVPanel.add(getChart());
+	dialogVPanel.addStyleName("dialogVPanel");
+	dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
+	dialogVPanel.add(closeButton);
+	_dialogBox.setWidget(dialogVPanel);
+  
+	// Add a handler to close the DialogBox
+	closeButton.addClickHandler(new ClickHandler() {
+	  public void onClick(ClickEvent event) {
+	    _dialogBox.hide();
+	  }
+	});
+}
+	
   public void onModuleLoad() {
-	  /*
-	  // begin antlr test
-	CharStream input= new ANTLRStringStream("x <- c(2,3,7,9)\n");
-	QLexer lex = new QLexer(input);
-	CommonTokenStream tokens = new CommonTokenStream(lex);
-	QParser parser = new QParser(tokens);
-	try
-	{
-	 	QParser.prog_return r = parser.prog();
-		
-		parseResult = "tree="+((Tree)r.tree).toStringTree();
-	}
-	catch(org.antlr.runtime.RecognitionException e)
-	{}
-    final Label resultLabel = new Label(parseResult);
-    RootPanel.get("resultLabelContainer").add(resultLabel);
-	    // end antlr test
-	*/
-
 	  final TextArea inputArea = new TextArea();
 	  final TextArea consoleArea = new TextArea();
 	  inputArea.setSize("800px", "150px");
@@ -41,11 +72,11 @@ public class WebTobinQ implements EntryPoint {
 
 	  final QInterpreter interpreter = new QInterpreter(new TextAreaConsole(consoleArea));
 
-    final Button evalButton = new Button("Eval All", new ClickHandler(){
+      final Button evalButton = new Button("Eval All", new ClickHandler(){
 		public void onClick(ClickEvent event) {
 			interpreter.eval(inputArea.getText());
 		}});
-    final Button clearButton = new Button("Clear Console", new ClickHandler(){
+      final Button clearButton = new Button("Clear Console", new ClickHandler(){
 
 		public void onClick(ClickEvent event) {
 			// tmp. chart test code.
@@ -59,9 +90,35 @@ public class WebTobinQ implements EntryPoint {
 		    chart.getCurve().setLegendLabel("x<sup>2</sup>");
 		    chart.getXAxis().setAxisLabel("x");
 		    chart.getYAxis().setAxisLabel("x<sup>2</sup>");
-		    RootPanel.get("chartContainer").add(chart);
+			
+			
+		    // Create the popup dialog box
+			if(_dialogBox == null)
+				_dialogBox = new DialogBox();
+		    _dialogBox.setText("Chart");
+		    _dialogBox.setAnimationEnabled(true);
+		    final Button closeButton = new Button("Close");
+		    // We can set the id of a widget by accessing its Element
+		    closeButton.getElement().setId("closeButton");
+		    VerticalPanel dialogVPanel = new VerticalPanel();
+		    dialogVPanel.add(chart);
+		    dialogVPanel.addStyleName("dialogVPanel");
+		    dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
+		    dialogVPanel.add(closeButton);
+		    _dialogBox.setWidget(dialogVPanel);
 		    chart.update();
-		    // end GChart test		
+	        _dialogBox.show();
+
+		    // Add a handler to close the DialogBox
+		    closeButton.addClickHandler(new ClickHandler() {
+		      public void onClick(ClickEvent event) {
+		        _dialogBox.hide();
+		      }
+		    });
+
+			
+			//
+			
 		}});
 
     evalButton.addStyleName("evalButton");

@@ -99,7 +99,7 @@ prog_continue:
 		-> ^(XXVALUE expr_or_assign)
 		;
 		
-expr_or_assign  :    (expr->expr) (EQ_ASSIGN expr_or_assign -> ^(XXBINARY expr expr_or_assign))?
+expr_or_assign  :    (expr->expr) (EQ_ASSIGN expr_or_assign -> ^(XXBINARY EQ_ASSIGN expr expr_or_assign))?
                 ;
 
 symbol_or_conststr 

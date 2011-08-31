@@ -10,6 +10,7 @@ import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.Tree;
 import org.junit.Test;
 
+import com.appspot.WebTobinQ.client.QParser.expr_or_assign_return;
 import com.appspot.WebTobinQ.client.QParser.expr_return;
 import com.appspot.WebTobinQ.client.QParser.formlist_return;
 import com.appspot.WebTobinQ.client.QParser.prog_return;
@@ -27,7 +28,7 @@ public class QParserTest {
 	@Test
 	public void temp() throws RecognitionException
 	{
-		CommonTree actual = parseProg("c(1, 2)");
+		CommonTree actual = parseProg("x = 3");
 		System.out.println(actual.toStringTree());
 	}
 	
@@ -44,6 +45,14 @@ public class QParserTest {
 		QParser parser = createParser(code);
 		
  		expr_return actual = parser.expr();
+ 	    CommonTree actual_tree = (CommonTree)actual.getTree();
+		return actual_tree;
+	}
+	
+	public static CommonTree parseExpressionOrAssign(String code) throws RecognitionException {
+		QParser parser = createParser(code);
+		
+ 		expr_or_assign_return actual = parser.expr_or_assign();
  	    CommonTree actual_tree = (CommonTree)actual.getTree();
 		return actual_tree;
 	}

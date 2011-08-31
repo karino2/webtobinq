@@ -2,6 +2,8 @@ package com.appspot.WebTobinQ.client;
 
 import org.antlr.runtime.tree.Tree;
 
+import com.googlecode.gchart.client.GChart;
+
 public class QFunction extends QObject {
 	Tree _body;
 	Tree _formalList;
@@ -37,8 +39,68 @@ public class QFunction extends QObject {
 		};
 	}
 	
+	// "seq"
+	public static QFunction createSeq()
+	{
+		return new QFunction(null, null) {
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get("...");
+				if(args.getLength() != 2)
+					throw new RuntimeException("seq argument seems wrong");
+				int beg = (Integer)args.get(0).getValue();
+				int end = (Integer)args.get(1).getValue();
+				
+				QObject res = new QObject("numeric");
+				for(int i = beg; i <= end; i++)
+				{
+					res.set(i-beg, QObject.createInt(i));
+				}
+				return res;				
+			}
+		};
+	}
+	
+	public static Plotable _plotable;
+
+	// "plot"
+	public static QObject createPlot(Plotable plotable) {
+		_plotable = plotable;
+		return new QFunction(null, null) {
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get("...");
+				if(args.getLength() != 2)
+					throw new RuntimeException("plot argument NYI");
+				QObject x = args.get(0);
+				QObject y = args.get(1);
+				if(x.getLength() != y.getLength())
+					throw new RuntimeException("x, y length differ");
+				GChart chart = _plotable.getChart();
+				
+			    chart.setChartTitle("<b>x vs y</b>");
+			    chart.setChartSize(150, 150);
+			    chart.addCurve();
+			    for (int i = 0; i < x.getLength(); i++)
+			    {
+			    	chart.getCurve().addPoint(i,i*i);
+			    }
+			    // chart.getCurve().setLegendLabel("x, y");
+			    chart.getXAxis().setAxisLabel("x");
+			    chart.getYAxis().setAxisLabel("y");
+			    
+			    _plotable.showChart();
+			    
+				return null;
+			}
+		};
+	}
+	
 	public String toString()
 	{
 		return "function ...";
 	}
+
 }

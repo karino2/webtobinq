@@ -17,10 +17,19 @@ public class QInterpreter {
 	public void registerBuiltinFunction()
 	{
 		_curEnv.put("c", QFunction.createConcatinate());
+		_curEnv.put("seq", QFunction.createSeq());
+		_curEnv.put("plot", QFunction.createPlot(_plotable));
 	}
 	
 	public QInterpreter(Writable console) {
+		this(console, null);
+	}	
+	
+	
+	Plotable _plotable;
+	public QInterpreter(Writable console, Plotable plotable) {
 		_curEnv = _rootEnv = new Environment(null);
+		_plotable = plotable;
 		this._console = console;
 		registerBuiltinFunction();
 	}
@@ -83,10 +92,10 @@ public class QInterpreter {
 			return QObject.createInt(Integer.valueOf(term.getText()));
 		if(term.getType() == QParser.XXBINARY) // recursive call now.
 			return evalBinary(term.getChild(0), term.getChild(1), term.getChild(2));
-		if(term.getType() == QParser.SYMBOL)
-			return _curEnv.get(term.getText());
 		if(term.getType() == QParser.XXFUNCALL)
 			return evalCallFunction(term);
+		if(term.getType() == QParser.SYMBOL)
+			return _curEnv.get(term.getText());
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI");
 	}
@@ -114,6 +123,7 @@ public class QInterpreter {
 	}
 	
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
+	// currently, I just ignore formal List for primitive function.
 	void assignToFormalList(Tree subList, Tree formalList,
 			Environment funcEnv) {
 		QObject args = evalSubList(subList);
@@ -137,7 +147,7 @@ public class QInterpreter {
 	{
 		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
 			return QObject.createInt(((Integer)arg1.getValue())+(Integer)arg2.getValue());
-		QObject ret = new QObject(arg1.getMode()); //tmp
+		QObject ret = new QObject(arg1.getMode());
 		QObject r1 = arg1;
 		QObject r2 = arg2;
 		if(r1.getLength() > r2.getLength())
@@ -155,13 +165,32 @@ public class QInterpreter {
 
 
 	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
+		if(QParser.LEFT_ASSIGN == op.getType() ||
+				QParser.EQ_ASSIGN == op.getType())
+		{
+			if(arg1.getType() != QParser.SYMBOL) {
+				debugPrint("lvalue not symbol, throw");
+				throw new RuntimeException("lvalue of assign is not SYMBOL, NYI");
+			}
+			_curEnv.put(arg1.getText(), evalTerm(arg2));
+			return null;
+		}
+		QObject term1 = evalTerm(arg1);
+		QObject term2 = evalTerm(arg2);
 		if("+".equals(op.getText()))
 		{
-			QObject term1 = evalTerm(arg1);
-			QObject term2 = evalTerm(arg2);
 			return evalPlus(term1, term2);
 		}
-		throw new RuntimeException("NYI");
+		else if(":".equals(op.getText()))
+		{
+			Environment funcEnv = new Environment(_curEnv);
+			QObject args = new QObject(term1.getMode());
+			args.set(0, term1);
+			args.set(1, term2);
+			funcEnv.put("...", args);
+			return ((QFunction)_curEnv.get("seq")).callPrimitive(funcEnv, this);
+		}
+		else 		throw new RuntimeException("NYI");
 	}
 
 	private Tree buildTree(String codestext) throws RecognitionException {
