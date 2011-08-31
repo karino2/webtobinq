@@ -2,17 +2,17 @@ package com.appspot.WebTobinQ.client;
 
 import java.util.ArrayList;
 
-public class RObject {
+public class QObject {
 	private String _name;
 	String _mode;
-	ArrayList<RObject> _vector = null;
-	public RObject(String name, String mode)
+	ArrayList<QObject> _vector = null;
+	public QObject(String name, String mode)
 	{
 		_name = name;
 		_mode = mode;
 	}
 	
-	public RObject(String mode) {
+	public QObject(String mode) {
 		this("", mode);
 	}
 	
@@ -21,7 +21,7 @@ public class RObject {
 		return _mode;
 	}
 	
-	public static RObject NA = new RObject("NA", "logical");
+	public static QObject NA = new QObject("NA", "logical");
 	
 	public String toString()
 	{
@@ -35,12 +35,12 @@ public class RObject {
 		return _vector.size();
 	}
 	
-	public RObject recycle(int upto)
+	public QObject recycle(int upto)
 	{
 		if(upto < getLength())
 			return this;
 		ensureVector();
-		RObject ret = RShallowClone();
+		QObject ret = RShallowClone();
 		int index = 0;
 		for(int i = 0; i < upto; i++, index++)
 		{
@@ -51,23 +51,23 @@ public class RObject {
 		return ret;
 	}
 	
-	public RObject get(int i)
+	public QObject get(int i)
 	{
 		if(_vector == null)
 			return null;
 		return _vector.get(i);
 	}
 
-	public void set(int i, RObject rObject) {
+	public void set(int i, QObject qObject) {
 		ensureVector();
 		if(getLength() < i+1)
 		{
 			extendVectorAndFillNA(i+1);
 		}
 		if(i == 0)
-			_vector.set(i, rObject.RShallowClone());
+			_vector.set(i, qObject.RShallowClone());
 		else
-			_vector.set(i, rObject);		
+			_vector.set(i, qObject);		
 	}
 
 	// slow.
@@ -81,7 +81,7 @@ public class RObject {
 	protected void ensureVector() {
 		if(_vector == null)
 		{
-			_vector = new ArrayList<RObject>();
+			_vector = new ArrayList<QObject>();
 			if(_vector.size() == 0)
 				_vector.add(0, RShallowClone());
 			else
@@ -89,7 +89,7 @@ public class RObject {
 		}
 	}
 	
-	public RObject RShallowClone()
+	public QObject RShallowClone()
 	{
 		return this;
 	}

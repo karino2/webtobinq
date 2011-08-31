@@ -2,11 +2,11 @@ package com.appspot.WebTobinQ.client;
 
 import org.antlr.runtime.tree.Tree;
 
-public class RFunction extends RObject {
+public class QFunction extends QObject {
 	Tree _body;
 	Tree _formalList;
 	
-	public RFunction(Tree formalList, Tree body)
+	public QFunction(Tree formalList, Tree body)
 	{
 		super("function");
 		_formalList = formalList;
@@ -17,19 +17,19 @@ public class RFunction extends RObject {
 	public Tree getBody() { return _body; }
 	
 	public boolean isPrimitive() { return false; }
-	public RObject callPrimitive(Environment funcEnv, QInterpreter intp)
+	public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 	{
 		return null;
 	}
 
 	// "c"
-	public static RFunction createConcatinate()
+	public static QFunction createConcatinate()
 	{
-		return new RFunction(null, null){
+		return new QFunction(null, null){
 			public boolean isPrimitive() {return true; }
-			public RObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
-				RObject args = funcEnv.get("...");
+				QObject args = funcEnv.get("...");
 				// should validate args here.
 				return args;
 				

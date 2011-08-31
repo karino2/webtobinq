@@ -16,7 +16,7 @@ public class QInterpreter {
 	
 	public void registerBuiltinFunction()
 	{
-		_curEnv.put("c", RFunction.createConcatinate());
+		_curEnv.put("c", QFunction.createConcatinate());
 	}
 	
 	public QInterpreter(Writable console) {
@@ -70,17 +70,17 @@ public class QInterpreter {
 	}
 
 	// (XXVALUE (XXBINARY + 2 3)), evalValue seems bad name.
-	public RObject evalValue(Tree t) {
-		RObject ret = null;
+	public QObject evalValue(Tree t) {
+		QObject ret = null;
 		if(t.getChildCount() == 0)
 			return ret;
 		return evalTerm(t.getChild(0));
 	}
 	
-	public RObject evalTerm(Tree term)
+	public QObject evalTerm(Tree term)
 	{
 		if(term.getType() == QParser.DecimalLiteral)
-			return new RInt(Integer.valueOf(term.getText()));
+			return new QInt(Integer.valueOf(term.getText()));
 		if(term.getType() == QParser.XXBINARY) // recursive call now.
 			return evalBinary(term.getChild(0), term.getChild(1), term.getChild(2));
 		if(term.getType() == QParser.SYMBOL)
@@ -92,15 +92,15 @@ public class QInterpreter {
 	}
 
 	// (XXFUNCALL c (XXSUBLIST (XXSUB1 1) (XXSUB1 2)))
-	RObject evalCallFunction(Tree term) {
-		RObject funcCand = (RObject)_curEnv.get(term.getChild(0).getText());
+	QObject evalCallFunction(Tree term) {
+		QObject funcCand = (QObject)_curEnv.get(term.getChild(0).getText());
 		if(funcCand.getMode() == "function")
 		{
-			RFunction func = (RFunction)funcCand;
+			QFunction func = (QFunction)funcCand;
 			Environment outer = _curEnv;
 			_curEnv = new Environment(_curEnv);
 			assignToFormalList(term.getChild(1), func.getFormalList(), _curEnv);
-			RObject ret;
+			QObject ret;
 			if(func.isPrimitive())
 				ret = func.callPrimitive(_curEnv, this);
 			else
@@ -116,31 +116,31 @@ public class QInterpreter {
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	void assignToFormalList(Tree subList, Tree formalList,
 			Environment funcEnv) {
-		RObject args = evalSubList(subList);
+		QObject args = evalSubList(subList);
 		// may be we should use another symbol, but use this for a while.
 		funcEnv.put("...", args);
 	}
 
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	// Currently, tmp implementation.
-	RObject evalSubList(Tree subList) {
-		RObject args = new RInt();
+	QObject evalSubList(Tree subList) {
+		QObject args = new QInt();
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
-			RObject arg = evalTerm(subList.getChild(i).getChild(0));
+			QObject arg = evalTerm(subList.getChild(i).getChild(0));
 			args.set(i, arg);
 		}
 		return args;
 	}
 
-	RObject evalPlus(Object arg1, Object arg2)
+	QObject evalPlus(Object arg1, Object arg2)
 	{
-		RInt r1 = (RInt)arg1;
-		RInt r2 = (RInt)arg2;
-		return new RInt(r1.getValue()+r2.getValue());
+		QInt r1 = (QInt)arg1;
+		QInt r2 = (QInt)arg2;
+		return new QInt(r1.getValue()+r2.getValue());
 	}
 
-	public RObject evalBinary(Tree op, Tree arg1, Tree arg2) {
+	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
 		if("+".equals(op.getText()))
 		{
 			Object term1 = evalTerm(arg1);

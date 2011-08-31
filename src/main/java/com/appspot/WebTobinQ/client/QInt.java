@@ -1,15 +1,15 @@
 package com.appspot.WebTobinQ.client;
 
-public class RInt extends RObject {
+public class QInt extends QObject {
 	int _val;
-	public RInt(int val)
+	public QInt(int val)
 	{
 		this();
 		_val = val;
 	}
 	
 	// should be length 0, fix later.
-	public RInt()
+	public QInt()
 	{
 		super("numeric");
 	}
@@ -23,32 +23,32 @@ public class RInt extends RObject {
 	{
 		StringBuffer buf = new StringBuffer();
 		ensureVector();
-		for(RObject obj : _vector)
+		for(QObject obj : _vector)
 		{
 			if(buf.length() != 0)
 				buf.append(" ");
-			if(obj == RObject.NA)
+			if(obj == QObject.NA)
 				buf.append("NA");
 			else
-				buf.append(((RInt)obj).getValue());
+				buf.append(((QInt)obj).getValue());
 		}
 		return buf.toString();
 	}
 	
 	
-	public RObject RShallowClone()
+	public QObject RShallowClone()
 	{
-		return new RInt(_val);
+		return new QInt(_val);
 	}
 	
-	public void set(int i, RObject arg)
+	public void set(int i, QObject arg)
 	{
 		if(i == 0){
-			if(arg == RObject.NA) // can't support now...
+			if(arg == QObject.NA) // can't support now...
 				_val = 0;
 			else
 			{
-				_val = ((RInt)arg).getValue();
+				_val = ((QInt)arg).getValue();
 			}
 		}
 		super.set(i, arg);
@@ -58,13 +58,13 @@ public class RInt extends RObject {
 	// this is Java equals, it might be confusing. and almost only for test.
 	public boolean equals(Object arg)
 	{
-		RObject robj = (RObject)arg;
+		QObject robj = (QObject)arg;
 
 		if(robj == null)
 			return false;
 		if(robj.getMode() != "numeric")
 			return false;
-		RInt rval = (RInt)robj;
+		QInt rval = (QInt)robj;
 		if(rval.getLength() != getLength())
 			return false;
 		if(getLength() == 1)
@@ -80,10 +80,10 @@ public class RInt extends RObject {
 		return true;
 	}
 
-	private boolean equalOne(RObject l, RObject r) {
+	private boolean equalOne(QObject l, QObject r) {
 		if(l.getMode() != "numeric" || r.getMode() != "numeric")
 			return false;
 		
-		return ((RInt)l).getValue() == ((RInt)r).getValue();
+		return ((QInt)l).getValue() == ((QInt)r).getValue();
 	}
 }

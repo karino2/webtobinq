@@ -23,7 +23,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus()
 	{
-		RInt expected = new RInt(5);
+		QInt expected = new QInt(5);
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("2+3");
 		assertEquals(expected, actual);
@@ -32,7 +32,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalTerm_int()
 	{
-		RInt expected = new RInt(3);
+		QInt expected = new QInt(3);
 
 		QInterpreter intp = createInterpreter();
 		CommonTree arg = createIntTree("3");
@@ -44,7 +44,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalTerm_XXBINARY()
 	{
-		RInt expected = new RInt(3);
+		QInt expected = new QInt(3);
 		
 		QInterpreter intp = createInterpreter();
 		CommonTree parent = createTree(QParser.XXBINARY, "");
@@ -80,7 +80,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus_2statements()
 	{
-		RInt expected = new RInt(9);
+		QInt expected = new QInt(9);
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("2+3\n4+5");
 		assertEquals(expected, actual);
@@ -89,7 +89,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus_3terms()
 	{
-		RInt expected = new RInt(6);
+		QInt expected = new QInt(6);
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("1+2+3");
 		assertEquals(expected, actual);
@@ -98,7 +98,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalBinary_plus() throws RecognitionException
 	{
-		RInt expected = new RInt(5);
+		QInt expected = new QInt(5);
 		Object actual = evalSimpleBinary("2+3");
 		assertEquals(expected, actual);
 	}
@@ -106,11 +106,11 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalPlus_normal()
 	{
-		RInt expected = new RInt(3);
+		QInt expected = new QInt(3);
 		
-		RInt arg1 = new RInt(1);
-		RInt arg2 = new RInt(2);
-		RInt actual = (RInt)_intp.evalPlus(arg1, arg2);
+		QInt arg1 = new QInt(1);
+		QInt arg2 = new QInt(2);
+		QInt actual = (QInt)_intp.evalPlus(arg1, arg2);
 		assertEquals(expected, actual);
 	}
 		
@@ -121,7 +121,7 @@ public class QInterpreterTest {
 		// (XXSUBLIST (XXSUB1 1) (XXSUB1 2) (XXSUB1 3))
 		Tree subList = buildSubList("c(1, 2, 3)");
 		QInterpreter intp = createInterpreter();
-		RObject ret = intp.evalSubList(subList);
+		QObject ret = intp.evalSubList(subList);
 
 		assertVector123(ret);
 	}
@@ -129,21 +129,21 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalSublist_single() throws RecognitionException
 	{
-		RInt expected = new RInt(1);
+		QInt expected = new QInt(1);
 		
 		// (XXSUBLIST (XXSUB1 1))
 		Tree subList = buildSubList("c(1)");
 		QInterpreter intp = createInterpreter();
-		RObject actual = intp.evalSubList(subList);
+		QObject actual = intp.evalSubList(subList);
 
 		assertEquals(expected, actual);
 	}
 	
-	private void assertVector123(RObject ret) {
+	private void assertVector123(QObject ret) {
 		assertEquals(3, ret.getLength());
-		assertEquals(new RInt(1), ret.get(0));
-		assertEquals(new RInt(2), ret.get(1));
-		assertEquals(new RInt(3), ret.get(2));
+		assertEquals(new QInt(1), ret.get(0));
+		assertEquals(new QInt(2), ret.get(1));
+		assertEquals(new QInt(3), ret.get(2));
 	}
 	
 	@Test
@@ -154,11 +154,11 @@ public class QInterpreterTest {
 		
 		Environment target = new Environment(null);
 		intp.assignToFormalList(subList, null, target);
-		RObject args = target.get("...");
+		QObject args = target.get("...");
 		
 		assertNotNull(args);
 		assertEquals("numeric", args.getMode());
-		assertEquals(1, ((RInt)args).getValue());
+		assertEquals(1, ((QInt)args).getValue());
 	}
 
 	// code is like "c(1, 2, 3)"
@@ -176,7 +176,7 @@ public class QInterpreterTest {
 	{
 		// (XXFUNCALL c (XXSUBLIST (XXSUB1 1) (XXSUB1 2) (XXSUB1 3)))
 		Tree expr = parseExpression("c(1, 2, 3)");
-		RObject ret = _intp.evalCallFunction(expr);
+		QObject ret = _intp.evalCallFunction(expr);
 
 		assertVector123(ret);		
 	}
@@ -206,7 +206,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_Environment_root()
 	{
-		RInt expected = new RInt(1);
+		QInt expected = new QInt(1);
 		Environment env = new Environment(null);
 		env.put("a", expected);
 		
@@ -217,8 +217,8 @@ public class QInterpreterTest {
 	@Test
 	public void test_Environment_chain()
 	{
-		RInt expectedA = new RInt(1);
-		RInt expectedB = new RInt(2);
+		QInt expectedA = new QInt(1);
+		QInt expectedB = new QInt(2);
 
 		Environment envParent = new Environment(null);
 		envParent.put("a", expectedA);

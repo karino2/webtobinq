@@ -3,15 +3,15 @@ package com.appspot.WebTobinQ.client;
 import java.util.HashMap;
 
 public class Environment {
-	HashMap<String, RObject> _curEnv;
+	HashMap<String, QObject> _curEnv;
 	Environment _parent;
 	public Environment(Environment parent)
 	{
 		_parent = parent;
-		_curEnv = new HashMap<String, RObject>();
+		_curEnv = new HashMap<String, QObject>();
 	}
 	
-	public RObject get(String key)
+	public QObject get(String key)
 	{
 		if(_curEnv.containsKey(key))
 			return _curEnv.get(key);
@@ -20,7 +20,7 @@ public class Environment {
 		return _parent.get(key);
 	}
 	
-	public void put(String key, RObject obj)
+	public void put(String key, QObject obj)
 	{
 		_curEnv.put(key, obj);
 	}
