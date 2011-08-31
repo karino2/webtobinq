@@ -84,7 +84,6 @@ public class QInterpreterTest {
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("2+3\n4+5");
 		assertEquals(expected, actual);
-		System.out.println(getConsoleOutput(intp));
 	}
 	
 	@Test
@@ -97,7 +96,7 @@ public class QInterpreterTest {
 	}
 	
 	@Test
-	public void test_expr_plus() throws RecognitionException
+	public void test_evalBinary_plus() throws RecognitionException
 	{
 		RInt expected = new RInt(5);
 		Object actual = evalSimpleBinary("2+3");
@@ -105,7 +104,18 @@ public class QInterpreterTest {
 	}
 	
 	@Test
-	public void test_evalSublist() throws RecognitionException
+	public void test_evalPlus_normal()
+	{
+		RInt expected = new RInt(3);
+		
+		RInt arg1 = new RInt(1);
+		RInt arg2 = new RInt(2);
+		RInt actual = (RInt)_intp.evalPlus(arg1, arg2);
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalSublist_multiple() throws RecognitionException
 	{
 		// (XXSUBLIST (XXSUB1 1) (XXSUB1 2) (XXSUB1 3))
 		Tree subList = buildSubList("c(1, 2, 3)");
@@ -115,6 +125,19 @@ public class QInterpreterTest {
 		assertVector123(ret);
 	}
 
+	@Test
+	public void test_evalSublist_single() throws RecognitionException
+	{
+		RInt expected = new RInt(1);
+		
+		// (XXSUBLIST (XXSUB1 1))
+		Tree subList = buildSubList("c(1)");
+		QInterpreter intp = createInterpreter();
+		RObject actual = intp.evalSubList(subList);
+
+		assertEquals(expected, actual);
+	}
+	
 	private void assertVector123(RObject ret) {
 		assertEquals(3, ret.getLength());
 		assertEquals(new RInt(1), ret.get(0));

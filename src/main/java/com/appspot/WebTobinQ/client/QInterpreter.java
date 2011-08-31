@@ -116,19 +116,22 @@ public class QInterpreter {
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	void assignToFormalList(Tree subList, Tree formalList,
 			Environment funcEnv) {
-		RInt args = evalSubList(subList);
+		RObject args = evalSubList(subList);
 		// may be we should use another symbol, but use this for a while.
 		funcEnv.put("...", args);
 	}
 
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	// Currently, tmp implementation.
-	RInt evalSubList(Tree subList) {
-		RInt args = new RInt();
+	RObject evalSubList(Tree subList) {
+		RObject args = new RInt();
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			RObject arg = evalTerm(subList.getChild(i).getChild(0));
-			args.set(i, arg);
+			if(i == 0)
+				args = arg;
+			else
+				args.set(i, arg);
 		}
 		return args;
 	}
