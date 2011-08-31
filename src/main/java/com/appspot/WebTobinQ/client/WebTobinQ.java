@@ -42,45 +42,57 @@ public class WebTobinQ implements EntryPoint, Plotable {
 	  _dialogBox.show();
   }
 
-private void initDialog() {
-	_dialogBox = new DialogBox();
-	_dialogBox.setText("Chart");
-	_dialogBox.setAnimationEnabled(true);
-	final Button closeButton = new Button("Close");
-	// We can set the id of a widget by accessing its Element
-	closeButton.getElement().setId("closeButton");
-	VerticalPanel dialogVPanel = new VerticalPanel();
-	dialogVPanel.add(getChart());
-	dialogVPanel.addStyleName("dialogVPanel");
-	dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
-	dialogVPanel.add(closeButton);
-	_dialogBox.setWidget(dialogVPanel);
-  
-	// Add a handler to close the DialogBox
-	closeButton.addClickHandler(new ClickHandler() {
-	  public void onClick(ClickEvent event) {
-	    _dialogBox.hide();
-	  }
-	});
-}
-	
-  public void onModuleLoad() {
+	private void initDialog() {
+		_dialogBox = new DialogBox();
+		_dialogBox.setText("Chart");
+		_dialogBox.setAnimationEnabled(true);
+		final Button closeButton = new Button("Close");
+		// We can set the id of a widget by accessing its Element
+		closeButton.getElement().setId("closeButton");
+		VerticalPanel dialogVPanel = new VerticalPanel();
+		dialogVPanel.add(getChart());
+		dialogVPanel.addStyleName("dialogVPanel");
+		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
+		dialogVPanel.add(closeButton);
+		_dialogBox.setWidget(dialogVPanel);
+	  
+		// Add a handler to close the DialogBox
+		closeButton.addClickHandler(new ClickHandler() {
+		  public void onClick(ClickEvent event) {
+		    _dialogBox.hide();
+		  }
+		});
+	}
+
+
+	TextAreaConsole	_console;
+    public void onModuleLoad() {
 	  final TextArea inputArea = new TextArea();
 	  final TextArea consoleArea = new TextArea();
 	  inputArea.setSize("800px", "150px");
 	  consoleArea.setSize("800px", "150px");
 
-	  final QInterpreter interpreter = new QInterpreter(new TextAreaConsole(consoleArea));
+	  _console = new TextAreaConsole(consoleArea);
+	  final QInterpreter interpreter = new QInterpreter(_console, this);
 
       final Button evalButton = new Button("Eval All", new ClickHandler(){
 		public void onClick(ClickEvent event) {
-			interpreter.eval(inputArea.getText());
+			try{
+				interpreter.eval(inputArea.getText());
+			}
+			catch(RuntimeException e)
+			{
+				interpreter.println("error: " + e.toString());
+			}
 		}});
       final Button clearButton = new Button("Clear Console", new ClickHandler(){
 
 		public void onClick(ClickEvent event) {
+			_console.clear();
 			// tmp. chart test code.
 		    // begin GChart test
+			/*
+			 * 
 		    GChart chart = new GChart();
 		    chart.setChartTitle("<b>x<sup>2</sup> vs x</b>");
 		    chart.setChartSize(150, 150);
@@ -115,7 +127,7 @@ private void initDialog() {
 		        _dialogBox.hide();
 		      }
 		    });
-
+		    */
 			
 			//
 			

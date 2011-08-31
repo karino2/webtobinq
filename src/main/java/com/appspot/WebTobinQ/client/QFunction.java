@@ -79,13 +79,16 @@ public class QFunction extends QObject {
 				if(x.getLength() != y.getLength())
 					throw new RuntimeException("x, y length differ");
 				GChart chart = _plotable.getChart();
+				chart.clearCurves();
 				
-			    chart.setChartTitle("<b>x vs y</b>");
-			    chart.setChartSize(150, 150);
+			    // chart.setChartTitle("<b>x vs y</b>");
+			    chart.setChartSize(350, 250);
 			    chart.addCurve();
 			    for (int i = 0; i < x.getLength(); i++)
 			    {
-			    	chart.getCurve().addPoint(i,i*i);
+			    	int x1 = (Integer)x.get(i).getValue();
+			    	int y1 = (Integer)y.get(i).getValue();
+			    	chart.getCurve().addPoint(x1, y1);
 			    }
 			    // chart.getCurve().setLegendLabel("x, y");
 			    chart.getXAxis().setAxisLabel("x");

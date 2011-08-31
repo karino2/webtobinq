@@ -87,7 +87,7 @@ prog	:	EOF
 	;
 	*/
 	
-prog : prog_begin prog_continue*
+prog : prog_begin prog_continue* ('\n' | ';')*
 	;
 
 prog_begin : ('\n' | ';')* expr_or_assign
@@ -95,7 +95,7 @@ prog_begin : ('\n' | ';')* expr_or_assign
 		;
 		
 prog_continue: 
-		('\n' | ';')+ expr_or_assign ('\n' | ';')*
+		('\n' | ';')+ expr_or_assign 
 		-> ^(XXVALUE expr_or_assign)
 		;
 		

@@ -15,4 +15,9 @@ public class TextAreaConsole implements Writable {
 	{
 		_textArea.setText(_textArea.getText() + cs);		
 	}
+	
+	public void clear()
+	{
+		_textArea.setText("");
+	}
 }

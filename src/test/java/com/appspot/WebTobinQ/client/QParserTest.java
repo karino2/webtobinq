@@ -33,12 +33,23 @@ public class QParserTest {
 	}
 	
 	@Test
-	public void test_prog_multipleAssign() throws RecognitionException
+	public void test_prog_twoAssign() throws RecognitionException
 	{
 		CommonTree actual = parseProg("x<-c(1,2,3)\ny<-c(5,76)\n");
 		assertEquals(2, actual.getChildCount());
 		assertEquals(QParser.XXVALUE, actual.getChild(0).getType());
 		assertEquals(QParser.XXVALUE, actual.getChild(1).getType());
+	}
+	
+	//@Test TODO: after parset update, add this test.
+	public void test_prog_threeAssign() throws RecognitionException
+	{
+		CommonTree actual = parseProg("x<-c(1,2,3)\ny<-c(5,76)\nz<-c(2, 3)");
+		System.out.println(actual.toStringTree());
+		assertEquals(3, actual.getChildCount());
+		assertEquals(QParser.XXVALUE, actual.getChild(0).getType());
+		assertEquals(QParser.XXVALUE, actual.getChild(1).getType());
+		assertEquals(QParser.XXVALUE, actual.getChild(2).getType());
 	}
 	
 	public static CommonTree parseExpression(String code) throws RecognitionException {

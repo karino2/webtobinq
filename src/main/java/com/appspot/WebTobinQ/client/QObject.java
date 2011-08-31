@@ -3,6 +3,10 @@ package com.appspot.WebTobinQ.client;
 import java.util.ArrayList;
 
 public class QObject {
+	public static QObject NA = new QObject("logical");
+	public static QObject Null = new QObject("NULL");
+
+	
 	Object _val;
 	String _mode;
 	ArrayList<QObject> _vector = null;
@@ -34,7 +38,6 @@ public class QObject {
 		return _val;
 	}
 	
-	public static QObject NA = new QObject("logical");
 	
 	public String toString()
 	{
@@ -86,6 +89,12 @@ public class QObject {
 
 	public void set(int i, QObject qObject) {
 		ensureVector();
+		if(getMode() == "list")
+		{
+			setToList(i, qObject);
+			return;
+		}
+		
 		if(getLength() < i+1)
 		{
 			extendVectorAndFillNA(i+1);
@@ -99,18 +108,31 @@ public class QObject {
 			_vector.set(i, qObject);		
 	}
 
-	// slow.
+	private void setToList(int i, QObject qObject) {
+		if(getLength() < i+1)
+			extendVectorAndFillValue(i+1, QObject.Null);
+		_vector.set(i, qObject);
+	}
+
 	public void extendVectorAndFillNA(int upto) {
+		extendVectorAndFillValue(upto, NA);
+	}
+	
+	// slow.
+	public void extendVectorAndFillValue(int upto, QObject obj)
+	{
 		for(int i = _vector.size(); i < upto; i++)
 		{
-			_vector.add(i, NA);
-		}
+			_vector.add(i, obj);
+		}		
 	}
 
 	void ensureVector() {
 		if(_vector == null)
 		{
 			_vector = new ArrayList<QObject>();
+			if(getMode() == "list")
+				return;
 			if(_vector.size() == 0)
 				_vector.add(0, shallowClone());
 			else

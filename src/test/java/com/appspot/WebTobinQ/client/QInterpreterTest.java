@@ -200,14 +200,14 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalSublist_single() throws RecognitionException
 	{
-		QObject expected = QObject.createInt(1);
-		
 		// (XXSUBLIST (XXSUB1 1))
 		Tree subList = buildSubList("c(1)");
 		QInterpreter intp = createInterpreter();
 		QObject actual = intp.evalSubList(subList);
 
-		assertEquals(expected, actual);
+		assertEquals("list", actual.getMode());
+		assertEquals(1, actual.getLength());
+		assertEquals(QObject.createInt(1), actual.get(0));
 	}
 	
 	private void assertVector123(QObject ret) {
@@ -228,8 +228,8 @@ public class QInterpreterTest {
 		QObject args = target.get("...");
 		
 		assertNotNull(args);
-		assertEquals("numeric", args.getMode());
-		assertEquals(1, args.getValue());
+		assertEquals("list", args.getMode());
+		assertEquals(1, args.get(0).getValue());
 	}
 
 	// code is like "c(1, 2, 3)"

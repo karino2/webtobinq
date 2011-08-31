@@ -134,7 +134,7 @@ public class QInterpreter {
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	// Currently, tmp implementation.
 	QObject evalSubList(Tree subList) {
-		QObject args = new QObject("numeric");
+		QObject args = new QObject("list");
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			QObject arg = evalTerm(subList.getChild(i).getChild(0));
