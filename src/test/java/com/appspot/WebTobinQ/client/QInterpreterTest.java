@@ -113,7 +113,38 @@ public class QInterpreterTest {
 		QObject actual = _intp.evalPlus(arg1, arg2);
 		assertEquals(expected, actual);
 	}
+	
+	public static QObject createInt(int i){ return QObject.createInt(i); }
+	
+	@Test
+	public void test_evalPlus_vectorPlusScalar()
+	{
+		QObject vector = QObject.createInt(1);
+		QObject r2 = QObject.createInt(2);
+		QObject r3 = QObject.createInt(3);
+		vector.set(1, r2);
+		// (1, 2) + 3 = (4, 5)
+		QObject actual = _intp.evalPlus(vector, r3);
 		
+		assertEquals(2, actual.getLength());
+		assertEquals(createInt(4), actual.get(0));
+		assertEquals(createInt(5), actual.get(1));
+	}
+		
+	@Test
+	public void test_evalPlus_scalarPlusVector()
+	{
+		QObject vector = QObject.createInt(1);
+		QObject r2 = QObject.createInt(2);
+		QObject r3 = QObject.createInt(3);
+		vector.set(1, r2);
+		// 3+(1, 2) = (4, 5)
+		QObject actual = _intp.evalPlus(r3, vector);
+		
+		assertEquals(2, actual.getLength());
+		assertEquals(createInt(4), actual.get(0));
+		assertEquals(createInt(5), actual.get(1));
+	}
 	
 	@Test
 	public void test_evalSublist_multiple() throws RecognitionException

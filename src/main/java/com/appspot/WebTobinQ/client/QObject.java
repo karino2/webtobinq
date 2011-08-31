@@ -40,12 +40,6 @@ public class QObject {
 	{
 		if(this == NA)
 			return "NA";
-		if(getMode() == "numeric")
-			return toStringNumeric();
-		return "";
-	}
-	
-	private String toStringNumeric() {
 		StringBuffer buf = new StringBuffer();
 		ensureVector();
 		for(QObject obj : _vector)
@@ -59,7 +53,7 @@ public class QObject {
 		}
 		return buf.toString();
 	}
-
+	
 	public int getLength()
 	{
 		if(_vector == null)
@@ -106,14 +100,14 @@ public class QObject {
 	}
 
 	// slow.
-	private void extendVectorAndFillNA(int upto) {
+	public void extendVectorAndFillNA(int upto) {
 		for(int i = _vector.size(); i < upto; i++)
 		{
 			_vector.add(i, NA);
 		}
 	}
 
-	protected void ensureVector() {
+	void ensureVector() {
 		if(_vector == null)
 		{
 			_vector = new ArrayList<QObject>();

@@ -135,8 +135,24 @@ public class QInterpreter {
 
 	QObject evalPlus(QObject arg1, QObject arg2)
 	{
-		return QObject.createInt(((int)(Integer)arg1.getValue())+(int)(Integer)arg2.getValue());
+		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
+			return QObject.createInt(((Integer)arg1.getValue())+(Integer)arg2.getValue());
+		QObject ret = new QObject(arg1.getMode()); //tmp
+		QObject r1 = arg1;
+		QObject r2 = arg2;
+		if(r1.getLength() > r2.getLength())
+			r2 = arg2.recycle(r1.getLength());
+		else if(r1.getLength() < r2.getLength())
+			r1 = arg1.recycle(r2.getLength());	
+		for(int i = 0; i < r1.getLength(); i++)
+		{
+			int i1 = (Integer)r1.get(i).getValue();
+			int i2 = (Integer)r2.get(i).getValue();
+			ret.set(i, QObject.createInt(i1+i2));
+		}
+		return ret;
 	}
+
 
 	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
 		if("+".equals(op.getText()))
