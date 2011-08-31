@@ -23,7 +23,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus()
 	{
-		QInt expected = new QInt(5);
+		QObject expected = QObject.createInt(5);
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("2+3");
 		assertEquals(expected, actual);
@@ -32,7 +32,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalTerm_int()
 	{
-		QInt expected = new QInt(3);
+		QObject expected = QObject.createInt(3);
 
 		QInterpreter intp = createInterpreter();
 		CommonTree arg = createIntTree("3");
@@ -44,7 +44,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalTerm_XXBINARY()
 	{
-		QInt expected = new QInt(3);
+		QObject expected = QObject.createInt(3);
 		
 		QInterpreter intp = createInterpreter();
 		CommonTree parent = createTree(QParser.XXBINARY, "");
@@ -80,7 +80,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus_2statements()
 	{
-		QInt expected = new QInt(9);
+		QObject expected = QObject.createInt(9);
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("2+3\n4+5");
 		assertEquals(expected, actual);
@@ -89,7 +89,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus_3terms()
 	{
-		QInt expected = new QInt(6);
+		QObject expected = QObject.createInt(6);
 		QInterpreter intp = createInterpreter();
 		Object actual = intp.eval("1+2+3");
 		assertEquals(expected, actual);
@@ -98,7 +98,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalBinary_plus() throws RecognitionException
 	{
-		QInt expected = new QInt(5);
+		QObject expected = QObject.createInt(5);
 		Object actual = evalSimpleBinary("2+3");
 		assertEquals(expected, actual);
 	}
@@ -106,11 +106,11 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalPlus_normal()
 	{
-		QInt expected = new QInt(3);
+		QObject expected = QObject.createInt(3);
 		
-		QInt arg1 = new QInt(1);
-		QInt arg2 = new QInt(2);
-		QInt actual = (QInt)_intp.evalPlus(arg1, arg2);
+		QObject arg1 = QObject.createInt(1);
+		QObject arg2 = QObject.createInt(2);
+		QObject actual = _intp.evalPlus(arg1, arg2);
 		assertEquals(expected, actual);
 	}
 		
@@ -129,7 +129,7 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalSublist_single() throws RecognitionException
 	{
-		QInt expected = new QInt(1);
+		QObject expected = QObject.createInt(1);
 		
 		// (XXSUBLIST (XXSUB1 1))
 		Tree subList = buildSubList("c(1)");
@@ -141,9 +141,9 @@ public class QInterpreterTest {
 	
 	private void assertVector123(QObject ret) {
 		assertEquals(3, ret.getLength());
-		assertEquals(new QInt(1), ret.get(0));
-		assertEquals(new QInt(2), ret.get(1));
-		assertEquals(new QInt(3), ret.get(2));
+		assertEquals(QObject.createInt(1), ret.get(0));
+		assertEquals(QObject.createInt(2), ret.get(1));
+		assertEquals(QObject.createInt(3), ret.get(2));
 	}
 	
 	@Test
@@ -158,7 +158,7 @@ public class QInterpreterTest {
 		
 		assertNotNull(args);
 		assertEquals("numeric", args.getMode());
-		assertEquals(1, ((QInt)args).getValue());
+		assertEquals(1, args.getValue());
 	}
 
 	// code is like "c(1, 2, 3)"
@@ -199,14 +199,14 @@ public class QInterpreterTest {
 	static QInterpreter createInterpreter()
 	{
 		ConsoleForTest console = new ConsoleForTest();
-		return new QInterpreter(console);		
+		return new QInterpreter(console);
 	}
 
 	
 	@Test
 	public void test_Environment_root()
 	{
-		QInt expected = new QInt(1);
+		QObject expected = QObject.createInt(1);
 		Environment env = new Environment(null);
 		env.put("a", expected);
 		
@@ -217,8 +217,8 @@ public class QInterpreterTest {
 	@Test
 	public void test_Environment_chain()
 	{
-		QInt expectedA = new QInt(1);
-		QInt expectedB = new QInt(2);
+		QObject expectedA = QObject.createInt(1);
+		QObject expectedB = QObject.createInt(2);
 
 		Environment envParent = new Environment(null);
 		envParent.put("a", expectedA);

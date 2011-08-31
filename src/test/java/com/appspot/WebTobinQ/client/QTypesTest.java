@@ -8,25 +8,25 @@ import org.junit.Test;
 
 public class QTypesTest {
 	@Test
-	public void test_RInt_equals()
+	public void test_QInt_equals()
 	{
-		QInt a = new QInt(5);
-		QInt b = new QInt(5);
+		QObject a = QObject.createInt(5);
+		QObject b = QObject.createInt(5);
 		assertEquals(a, b);
 		
 	}
 	
 	@Test
-	public void test_RInt_equals_multiple()
+	public void test_QInt_equals_multiple()
 	{
-		QInt r1 = new QInt(1);
-		QInt r2 = new QInt(2);
+		QObject r1 = QObject.createInt(1);
+		QObject r2 = QObject.createInt(2);
 		
-		QInt v1 = new QInt();
+		QObject v1 = new QObject("numeric");
 		v1.set(0, r1);
 		v1.set(1, r2);
 		
-		QInt v2 = new QInt();
+		QObject v2 = new QObject("numeric");
 		v2.set(0, r1);
 		v2.set(1, r2);
 		
@@ -34,12 +34,12 @@ public class QTypesTest {
 	}
 	
 	@Test
-	public void test_RInt_equals_onlyFirstEqual()
+	public void test_QInt_equals_onlyFirstEqual()
 	{
-		QInt r1 = new QInt(1);
-		QInt r2 = new QInt(2);
+		QObject r1 = QObject.createInt(1);
+		QObject r2 = QObject.createInt(2);
 		
-		QInt v1 = new QInt();
+		QObject v1 = new QObject("numeric");
 		v1.set(0, r1);
 		v1.set(1, r2);
 				
@@ -47,35 +47,35 @@ public class QTypesTest {
 	}
 	
 	@Test
-	public void test_RInt_notEquals()
+	public void test_QInt_notEquals()
 	{
-		QInt a = new QInt(5);
-		QInt b = new QInt(6);
+		QObject a = QObject.createInt(5);
+		QObject b = QObject.createInt(6);
 		assertNotSame(a, b);
 	}
 	
 	@Test
-	public void test_RInt_set()
+	public void test_QInt_set()
 	{
-		QInt a = new QInt(1);
-		a.set(2, new QInt(3));
+		QObject a = QObject.createInt(1);
+		a.set(2, QObject.createInt(3));
 
 		
 		assertEquals(3, a.getLength());
-		assertEquals(new QInt(1), a.get(0));
+		assertEquals(QObject.createInt(1), a.get(0));
 		assertEquals(QObject.NA, a.get(1));
-		assertEquals(new QInt(3), a.get(2));
+		assertEquals(QObject.createInt(3), a.get(2));
 		
 	}
 	
 	@Test
-	public void test_RInt_recycle()
+	public void test_QInt_recycle()
 	{
-		QInt r1 = new QInt(1);
-		QInt r2 = new QInt(2);
-		QInt r3 = new QInt(3);
+		QObject r1 = QObject.createInt(1);
+		QObject r2 = QObject.createInt(2);
+		QObject r3 = QObject.createInt(3);
 		
-		QInt r = new QInt(1);
+		QObject r = QObject.createInt(1);
 		r.set(1, r2);
 		r.set(2, r3);
 		

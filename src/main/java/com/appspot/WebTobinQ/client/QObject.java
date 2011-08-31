@@ -3,17 +3,25 @@ package com.appspot.WebTobinQ.client;
 import java.util.ArrayList;
 
 public class QObject {
-	private String _name;
+	Object _val;
 	String _mode;
 	ArrayList<QObject> _vector = null;
-	public QObject(String name, String mode)
+	
+	
+	public QObject(String mode, Object val)
 	{
-		_name = name;
+		this(mode);
+		_val = val;
+	}
+	
+	public QObject(String mode)
+	{
 		_mode = mode;
 	}
 	
-	public QObject(String mode) {
-		this("", mode);
+	public static QObject createInt(int val)
+	{
+		return new QObject("numeric", val);
 	}
 	
 	public String getMode()
@@ -21,13 +29,37 @@ public class QObject {
 		return _mode;
 	}
 	
-	public static QObject NA = new QObject("NA", "logical");
+	public Object getValue()
+	{
+		return _val;
+	}
+	
+	public static QObject NA = new QObject("logical");
 	
 	public String toString()
 	{
-		return _name;
+		if(this == NA)
+			return "NA";
+		if(getMode() == "numeric")
+			return toStringNumeric();
+		return "";
 	}
 	
+	private String toStringNumeric() {
+		StringBuffer buf = new StringBuffer();
+		ensureVector();
+		for(QObject obj : _vector)
+		{
+			if(buf.length() != 0)
+				buf.append(" ");
+			if(obj == QObject.NA)
+				buf.append("NA");
+			else
+				buf.append(obj._val.toString());
+		}
+		return buf.toString();
+	}
+
 	public int getLength()
 	{
 		if(_vector == null)
@@ -40,7 +72,7 @@ public class QObject {
 		if(upto < getLength())
 			return this;
 		ensureVector();
-		QObject ret = RShallowClone();
+		QObject ret = shallowClone();
 		int index = 0;
 		for(int i = 0; i < upto; i++, index++)
 		{
@@ -64,8 +96,11 @@ public class QObject {
 		{
 			extendVectorAndFillNA(i+1);
 		}
-		if(i == 0)
-			_vector.set(i, qObject.RShallowClone());
+		if(i == 0) {
+			// something strange.
+			_val = qObject._val;
+			_vector.set(i, qObject.shallowClone());
+		}
 		else
 			_vector.set(i, qObject);		
 	}
@@ -83,15 +118,42 @@ public class QObject {
 		{
 			_vector = new ArrayList<QObject>();
 			if(_vector.size() == 0)
-				_vector.add(0, RShallowClone());
+				_vector.add(0, shallowClone());
 			else
-				_vector.set(0, RShallowClone());
+				_vector.set(0, shallowClone());
 		}
 	}
 	
-	public QObject RShallowClone()
+	public QObject shallowClone()
 	{
-		return this;
+		return new QObject(getMode(), _val);
 	}
 
+	// R equals is binary operater who handles vector.
+	// this is Java equals, it might be confusing. and almost only for test.
+	public boolean equals(Object arg)
+	{
+		QObject robj = (QObject)arg;
+
+		if(robj == null)
+			return false;
+		if(robj.getLength() != getLength())
+			return false;		
+		if(getLength() == 1)
+		{
+			return equalOne(this, robj);
+		}
+		for(int i = 0; i < robj.getLength(); i++)
+		{
+			// treat NA as false.
+			if(!equalOne(get(i), robj.get(i)))
+				return false;
+		}
+		return true;
+	}
+
+	private boolean equalOne(QObject l, QObject r) {
+		return l.getMode() == r.getMode()
+		 		&&(l.getValue() == r.getValue());
+	}
 }

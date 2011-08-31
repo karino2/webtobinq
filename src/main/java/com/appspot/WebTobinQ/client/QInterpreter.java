@@ -80,7 +80,7 @@ public class QInterpreter {
 	public QObject evalTerm(Tree term)
 	{
 		if(term.getType() == QParser.DecimalLiteral)
-			return new QInt(Integer.valueOf(term.getText()));
+			return QObject.createInt(Integer.valueOf(term.getText()));
 		if(term.getType() == QParser.XXBINARY) // recursive call now.
 			return evalBinary(term.getChild(0), term.getChild(1), term.getChild(2));
 		if(term.getType() == QParser.SYMBOL)
@@ -124,7 +124,7 @@ public class QInterpreter {
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	// Currently, tmp implementation.
 	QObject evalSubList(Tree subList) {
-		QObject args = new QInt();
+		QObject args = new QObject("numeric");
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			QObject arg = evalTerm(subList.getChild(i).getChild(0));
@@ -133,18 +133,16 @@ public class QInterpreter {
 		return args;
 	}
 
-	QObject evalPlus(Object arg1, Object arg2)
+	QObject evalPlus(QObject arg1, QObject arg2)
 	{
-		QInt r1 = (QInt)arg1;
-		QInt r2 = (QInt)arg2;
-		return new QInt(r1.getValue()+r2.getValue());
+		return QObject.createInt(((int)(Integer)arg1.getValue())+(int)(Integer)arg2.getValue());
 	}
 
 	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
 		if("+".equals(op.getText()))
 		{
-			Object term1 = evalTerm(arg1);
-			Object term2 = evalTerm(arg2);
+			QObject term1 = evalTerm(arg1);
+			QObject term2 = evalTerm(arg2);
 			return evalPlus(term1, term2);
 		}
 		throw new RuntimeException("NYI");
