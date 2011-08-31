@@ -128,10 +128,7 @@ public class QInterpreter {
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			RObject arg = evalTerm(subList.getChild(i).getChild(0));
-			if(i == 0)
-				args = arg;
-			else
-				args.set(i, arg);
+			args.set(i, arg);
 		}
 		return args;
 	}

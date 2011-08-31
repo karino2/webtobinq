@@ -21,8 +21,7 @@ public class RObject {
 		return _mode;
 	}
 	
-	public static RObject NA = new RObject("NA");
-	public static RObject Inf = new RObject("Inf");
+	public static RObject NA = new RObject("NA", "logical");
 	
 	public String toString()
 	{
@@ -41,7 +40,7 @@ public class RObject {
 		if(upto < getLength())
 			return this;
 		ensureVector();
-		RObject ret = new RObject(getMode());
+		RObject ret = RShallowClone();
 		int index = 0;
 		for(int i = 0; i < upto; i++, index++)
 		{
@@ -65,7 +64,10 @@ public class RObject {
 		{
 			extendVectorAndFillNA(i+1);
 		}
-		_vector.set(i, rObject);
+		if(i == 0)
+			_vector.set(i, rObject.RShallowClone());
+		else
+			_vector.set(i, rObject);		
 	}
 
 	// slow.
@@ -80,8 +82,16 @@ public class RObject {
 		if(_vector == null)
 		{
 			_vector = new ArrayList<RObject>();
-			_vector.add(0, this);
+			if(_vector.size() == 0)
+				_vector.add(0, RShallowClone());
+			else
+				_vector.set(0, RShallowClone());
 		}
+	}
+	
+	public RObject RShallowClone()
+	{
+		return this;
 	}
 
 }
