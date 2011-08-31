@@ -12,9 +12,33 @@ import org.junit.Test;
 
 import com.appspot.WebTobinQ.client.QParser.expr_return;
 import com.appspot.WebTobinQ.client.QParser.formlist_return;
+import com.appspot.WebTobinQ.client.QParser.prog_return;
 
 
 public class QParserTest {
+	public static CommonTree parseProg(String code) throws RecognitionException {
+		QParser parser = createParser(code);
+		
+ 		prog_return actual = parser.prog();
+ 	    CommonTree actual_tree = (CommonTree)actual.getTree();
+		return actual_tree;
+	}
+	
+	@Test
+	public void temp() throws RecognitionException
+	{
+		CommonTree actual = parseProg("c(1, 2)");
+		System.out.println(actual.toStringTree());
+	}
+	
+	@Test
+	public void test_prog_multipleAssign() throws RecognitionException
+	{
+		CommonTree actual = parseProg("x<-c(1,2,3)\ny<-c(5,76)\n");
+		assertEquals(2, actual.getChildCount());
+		assertEquals(QParser.XXVALUE, actual.getChild(0).getType());
+		assertEquals(QParser.XXVALUE, actual.getChild(1).getType());
+	}
 	
 	public static CommonTree parseExpression(String code) throws RecognitionException {
 		QParser parser = createParser(code);
@@ -25,7 +49,7 @@ public class QParserTest {
 	}
 	
 	@Test
-	public void test_plusBinary() throws RecognitionException
+	public void test_expr_plusBinary() throws RecognitionException
 	{
 		String code = "2+3";
 		CommonTree actual_tree = parseExpression(code);
@@ -62,7 +86,7 @@ public class QParserTest {
 	}
 	
 	@Test
-	public void test_nullArg() throws RecognitionException
+	public void test_formlist_nullArg() throws RecognitionException
 	{
 		String code = "";
 		CommonTree actual_tree = parseFormList(code);
@@ -72,7 +96,7 @@ public class QParserTest {
 	}
 	
 	// @Test
-	public void test_oneArgSymbol() throws RecognitionException
+	public void test_formlist_oneArgSymbol() throws RecognitionException
 	{
 		String code = "x";
 		CommonTree actual_tree = parseFormList(code);
@@ -92,7 +116,7 @@ public class QParserTest {
 		return actual_tree;
 	}
 
-	private static QParser createParser(String code) {
+	public static QParser createParser(String code) {
 		CharStream codes = new ANTLRStringStream(code);
 		QLexer lex = new QLexer(codes);
 		CommonTokenStream tokens = new CommonTokenStream(lex);

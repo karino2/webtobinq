@@ -86,14 +86,19 @@ prog	:	EOF
 	|	expr_or_assign ('\n' | ';')
 	;
 	*/
-
-prog	: ('\n' | ';')* (fexp=expr_or_assign -> ^(XXVALUE $fexp))
-			(('\n' | ';')+ (cexp = expr_or_assign)('\n' | ';')*
-			   ->^(XXVALUE $cexp)
-			 )*
-		
+	
+prog : prog_begin prog_continue*
 	;
 
+prog_begin : ('\n' | ';')* expr_or_assign
+		-> ^(XXVALUE expr_or_assign)
+		;
+		
+prog_continue: 
+		('\n' | ';')+ expr_or_assign ('\n' | ';')*
+		-> ^(XXVALUE expr_or_assign)
+		;
+		
 expr_or_assign  :    (expr->expr) (EQ_ASSIGN expr_or_assign -> ^(XXBINARY expr expr_or_assign))?
                 ;
 
