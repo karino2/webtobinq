@@ -127,13 +127,14 @@ public class QInterpreter {
 		return null;
 	}
 	
+	public final String ARGNAME = "__arg__";
+	
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
 	// currently, I just ignore formal List for primitive function.
 	void assignToFormalList(Tree subList, Tree formalList,
 			Environment funcEnv) {
 		QObject args = evalSubList(subList);
-		// may be we should use another symbol, but use this for a while.
-		funcEnv.put("...", args);
+		funcEnv.put(ARGNAME, args);
 	}
 
 	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
@@ -197,7 +198,7 @@ public class QInterpreter {
 			QObject args = new QObject(term1.getMode());
 			args.set(0, term1);
 			args.set(1, term2);
-			funcEnv.put("...", args);
+			funcEnv.put(ARGNAME, args);
 			return ((QFunction)_curEnv.get("seq")).callPrimitive(funcEnv, this);
 		}
 		else 		throw new RuntimeException("NYI");

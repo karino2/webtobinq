@@ -224,6 +224,8 @@ public class QInterpreterTest {
 		assertNumericEquals(QObject.createNumeric(3), ret.get(2));
 	}
 	
+	public final String ARGNAME = "__arg__";
+	
 	@Test
 	public void test_assignToFormalList() throws RecognitionException
 	{
@@ -232,7 +234,7 @@ public class QInterpreterTest {
 		
 		Environment target = new Environment(null);
 		intp.assignToFormalList(subList, null, target);
-		QObject args = target.get("...");
+		QObject args = target.get(ARGNAME);
 		
 		assertNotNull(args);
 		assertEquals("list", args.getMode());

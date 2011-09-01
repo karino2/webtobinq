@@ -8,6 +8,8 @@ public class QFunction extends QObject {
 	Tree _body;
 	Tree _formalList;
 	
+	public final String ARGNAME = "__arg__";
+	
 	public QFunction(Tree formalList, Tree body)
 	{
 		super("function");
@@ -31,7 +33,7 @@ public class QFunction extends QObject {
 			public boolean isPrimitive() {return true; }
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
-				QObject args = funcEnv.get("...");
+				QObject args = funcEnv.get(ARGNAME);
 				// should validate args here.
 				return args;
 				
@@ -46,7 +48,7 @@ public class QFunction extends QObject {
 			public boolean isPrimitive() {return true; }
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
-				QObject args = funcEnv.get("...");
+				QObject args = funcEnv.get(ARGNAME);
 				if(args.getLength() != 2)
 					throw new RuntimeException("seq argument seems wrong");
 				double beg = getDouble(args.get(0));
@@ -71,7 +73,7 @@ public class QFunction extends QObject {
 			public boolean isPrimitive() {return true; }
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
-				QObject args = funcEnv.get("...");
+				QObject args = funcEnv.get(ARGNAME);
 				if(args.getLength() != 2)
 					throw new RuntimeException("plot argument NYI");
 				QObject x = args.get(0);
