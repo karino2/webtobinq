@@ -1,14 +1,34 @@
 package com.appspot.WebTobinQ.client;
 
+import org.antlr.runtime.ANTLRStringStream;
+import org.antlr.runtime.CharStream;
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 
 import com.googlecode.gchart.client.GChart;
+import com.googlecode.gchart.client.GChart.Axis;
 
 public class QFunction extends QObject {
 	Tree _body;
 	Tree _formalList;
 	
 	public final String ARGNAME = "__arg__";
+	public static Tree parseFormalList(String code)
+	{
+		CharStream codes = new ANTLRStringStream(code);
+		QLexer lex = new QLexer(codes);
+		CommonTokenStream tokens = new CommonTokenStream(lex);
+		QParser parser = new QParser(tokens);
+		try {
+			return (Tree)parser.formlist().getTree();
+		} catch (RecognitionException e) {
+			// This input is statically determined.
+			// Never come here if once it passed.
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	public QFunction(Tree formalList, Tree body)
 	{
@@ -44,15 +64,16 @@ public class QFunction extends QObject {
 	// "seq"
 	public static QFunction createSeq()
 	{
-		return new QFunction(null, null) {
+		return new QFunction(parseFormalList("beg, end, by=1"), null) {
 			public boolean isPrimitive() {return true; }
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
-				QObject args = funcEnv.get(ARGNAME);
-				if(args.getLength() != 2)
+				QObject begO = funcEnv.get("beg");
+				QObject endO = funcEnv.get("end");
+				if(begO == null || endO == null)
 					throw new RuntimeException("seq argument seems wrong");
-				double beg = getDouble(args.get(0));
-				double end = getDouble(args.get(1));
+				double beg = getDouble(begO);
+				double end = getDouble(endO);
 				
 				QObject res = new QObject("numeric");
 				for(int i = 0; i <= end-beg; i++)
@@ -69,21 +90,33 @@ public class QFunction extends QObject {
 	// "plot"
 	public static QObject createPlot(Plotable plotable) {
 		_plotable = plotable;
-		return new QFunction(null, null) {
+		return new QFunction(parseFormalList("x, y, main=NULL, xlim=NULL, ylim=NULL"), null) {
 			public boolean isPrimitive() {return true; }
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
-				QObject args = funcEnv.get(ARGNAME);
-				if(args.getLength() != 2)
-					throw new RuntimeException("plot argument NYI");
-				QObject x = args.get(0);
-				QObject y = args.get(1);
+				QObject x = funcEnv.get("x");
+				QObject y = funcEnv.get("y");
+				QObject ylim = funcEnv.get("ylim");
+				// String is NYI...
+				// QObject main = funcEnv.get("main");
 				if(x.getLength() != y.getLength())
 					throw new RuntimeException("x, y length differ");
 				GChart chart = _plotable.getChart();
 				chart.clearCurves();
 				
-			    // chart.setChartTitle("<b>x vs y</b>");
+				if(ylim != QObject.Null)
+				{
+					if(ylim.getLength() != 2)
+						throw new RuntimeException("ylim is not 2 element object");
+					Axis axis = chart.getYAxis();
+					axis.setAxisMin(getDouble(ylim.get(0)));
+					axis.setAxisMax(getDouble(ylim.get(1)));
+				}
+
+				/*
+				if(main != QObject.Null)
+					chart.setChartTitle((String)main.getValue());
+					*/
 			    chart.setChartSize(350, 250);
 			    chart.addCurve();
 			    for (int i = 0; i < x.getLength(); i++)

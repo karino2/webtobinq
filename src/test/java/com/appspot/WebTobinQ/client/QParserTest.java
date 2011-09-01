@@ -26,32 +26,24 @@ public class QParserTest {
 	}
 	
 	@Test
-	public void temp() throws RecognitionException
-	{
-		CommonTree actual = parseProg("x = 3");
-		System.out.println(actual.toStringTree());
-	}
-	
-	@Test
 	public void test_prog_twoAssign() throws RecognitionException
 	{
-		CommonTree actual = parseProg("x<-c(1,2,3)\ny<-c(5,76)\n");
+		CommonTree actual = parseProg("x<-c(1,2,3)\ny<-c(5,76)");
 		assertEquals(2, actual.getChildCount());
 		assertEquals(QParser.XXVALUE, actual.getChild(0).getType());
 		assertEquals(QParser.XXVALUE, actual.getChild(1).getType());
 	}
 
-	// TODO: should comment in after parser update
-	// @Test
+	@Test
 	public void test_prog_threeAssign() throws RecognitionException
 	{
 		CommonTree actual = parseProg("x<-c(1,2,3)\ny<-c(5,76)\nz<-c(2, 3)");
-		System.out.println("deb=" +actual.toStringTree() + " enddeb");
 		assertEquals(3, actual.getChildCount());
 		assertEquals(QParser.XXVALUE, actual.getChild(0).getType());
 		assertEquals(QParser.XXVALUE, actual.getChild(1).getType());
 		assertEquals(QParser.XXVALUE, actual.getChild(2).getType());
 	}
+	
 	
 	public static CommonTree parseExpression(String code) throws RecognitionException {
 		QParser parser = createParser(code);
@@ -116,20 +108,18 @@ public class QParserTest {
  	    assertEquals(actual_tree.getChildCount(), 0);
 	}
 	
-	// @Test
+	@Test
 	public void test_formlist_oneArgSymbol() throws RecognitionException
 	{
 		String code = "x";
 		CommonTree actual_tree = parseFormList(code);
 		
-		System.out.println(actual_tree.toStringTree());
- 	    
  	    assertEquals(actual_tree.getType(), QParser.XXFORMALLIST);
  	    assertEquals(actual_tree.getChildCount(), 1);
 	}
 
 
-	private static CommonTree parseFormList(String code) throws RecognitionException {
+	public static CommonTree parseFormList(String code) throws RecognitionException {
 		QParser parser = createParser(code);
 		
  		formlist_return actual = parser.formlist();

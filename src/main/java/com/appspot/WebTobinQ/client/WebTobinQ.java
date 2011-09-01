@@ -83,6 +83,7 @@ public class WebTobinQ implements EntryPoint, Plotable {
 			catch(RuntimeException e)
 			{
 				interpreter.println("error: " + e.toString());
+				e.printStackTrace();
 			}
 		}});
       final Button clearButton = new Button("Clear Console", new ClickHandler(){

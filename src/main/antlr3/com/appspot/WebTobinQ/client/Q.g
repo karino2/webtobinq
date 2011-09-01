@@ -113,7 +113,8 @@ formalarg : SYMBOL -> ^(XXFORMAL0 SYMBOL)
 	| SYMBOL EQ_ASSIGN expr -> ^(XXFORMAL1 SYMBOL expr)
 	;
 
-formlist: (formalarg (',' formalarg)*)?
+// I add EOF for debug.
+formlist:(formalarg (',' formalarg)*)? EOF?
 	  -> ^(XXFORMALLIST formalarg*)
 	;
 

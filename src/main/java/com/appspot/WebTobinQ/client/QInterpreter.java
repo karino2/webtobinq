@@ -1,5 +1,7 @@
 package com.appspot.WebTobinQ.client;
 
+import java.util.HashMap;
+
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonTokenStream;
@@ -101,8 +103,10 @@ public class QInterpreter {
 			return evalCallFunction(term);
 		if(term.getType() == QParser.SYMBOL)
 			return _curEnv.get(term.getText());
+		if(term.getType() == QParser.NULL_CONST)
+			return QObject.Null;
 		System.out.println(term.getType());
-		throw new RuntimeException("NYI");
+		throw new RuntimeException("NYI2:" + term.getType());
 	}
 
 	// (XXFUNCALL c (XXSUBLIST (XXSUB1 1) (XXSUB1 2)))
@@ -113,13 +117,19 @@ public class QInterpreter {
 			QFunction func = (QFunction)funcCand;
 			Environment outer = _curEnv;
 			_curEnv = new Environment(_curEnv);
-			assignToFormalList(term.getChild(1), func.getFormalList(), _curEnv);
 			QObject ret;
-			if(func.isPrimitive())
-				ret = func.callPrimitive(_curEnv, this);
-			else
-				ret = evalValue(func.getBody());
-			_curEnv = outer;
+			try 
+			{
+				assignToFormalList(term.getChild(1), func.getFormalList(), _curEnv);
+				if(func.isPrimitive())
+					ret = func.callPrimitive(_curEnv, this);
+				else
+					ret = evalValue(func.getBody());
+			}
+			finally
+			{
+				_curEnv = outer;
+			}
 			return ret;
 		}
 		// error handling, can I use exception in JS env?
@@ -129,26 +139,95 @@ public class QInterpreter {
 	
 	public final String ARGNAME = "__arg__";
 	
-	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
-	// currently, I just ignore formal List for primitive function.
+	// (XXSUBLIST (XXSUB1 1) (XXSYMSUB1 beg 4))
+	// (XXFORMALLIST (XXFORMAL0 beg) (XXFORMAL1 end 10))
 	void assignToFormalList(Tree subList, Tree formalList,
 			Environment funcEnv) {
-		QObject args = evalSubList(subList);
-		funcEnv.put(ARGNAME, args);
+		if(formalList == null) {
+			assignToDefaultArgs(subList, funcEnv);
+			return;
+		}
+		HashMap<String, Boolean> assigned = new HashMap<String, Boolean>();
+
+		handleXXSymSub1(subList, funcEnv, assigned);
+		handleXXSub(subList, formalList, funcEnv, assigned);		
+		assignRemainingDefaultArguments(formalList, funcEnv, assigned);
 	}
 
-	// (XXSUBLIST (XXSUB1 1) (XXSUB1 2))
-	// Currently, tmp implementation.
-	QObject evalSubList(Tree subList) {
+	private void assignRemainingDefaultArguments(Tree formalList, Environment funcEnv,
+			HashMap<String, Boolean> assigned) {
+		for(int i = 0; i < formalList.getChildCount(); i++)
+		{
+			Tree formArg = formalList.getChild(i);
+			if(formArg.getType() != QParser.XXFORMAL1)
+				continue;
+			Tree sym = formArg.getChild(0);
+			if(isAssigned(sym.getText(), assigned))
+				continue;
+			Tree val = formArg.getChild(1);
+			funcEnv.put(sym.getText(), evalTerm(val));
+		}
+	}
+
+	private void handleXXSub(Tree subList, Tree formalList,
+			Environment funcEnv, HashMap<String, Boolean> assigned) {
+		for(int i = 0; i < subList.getChildCount(); i++)
+		{
+			Tree node = subList.getChild(i);
+			if(node.getType() != QParser.XXSUB1)
+				continue;
+			Tree formArg = getNextFormArgSym(formalList, assigned);
+			Tree val = node.getChild(0);
+			funcEnv.put(formArg.getText(), evalTerm(val));			
+			assigned.put(formArg.getText(), true);
+		}
+	}
+	
+	private boolean isAssigned(String name, HashMap<String, Boolean> assigned)
+	{
+		return assigned.containsKey(name) && assigned.get(name);
+	}
+
+	// slow
+	// (XXFORMALLIST (XXFORMAL0 beg) (XXFORMAL1 end 10))
+	private Tree getNextFormArgSym(Tree formalList,
+			HashMap<String, Boolean> assigned) {
+		for(int i = 0; i < formalList.getChildCount(); i++)
+		{
+			Tree arg = formalList.getChild(i);
+			Tree sym = arg.getChild(0);
+			if(isAssigned(sym.getText(), assigned))
+				continue;
+			return sym;
+		}
+		throw new RuntimeException("Too much arguments");
+    }
+
+	private void handleXXSymSub1(Tree subList, Environment funcEnv,
+			HashMap<String, Boolean> assigned) {
+		for(int i = 0; i < subList.getChildCount(); i++)
+		{
+			Tree node = subList.getChild(i);
+			if(node.getType() != QParser.XXSYMSUB1)
+				continue;
+			Tree sym = node.getChild(0);
+			Tree val = node.getChild(1);
+			funcEnv.put(sym.getText(), evalTerm(val));
+			
+			assigned.put(sym.getText(), true);
+		}
+	}
+
+	private void assignToDefaultArgs(Tree subList, Environment funcEnv) {
 		QObject args = new QObject("list");
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			QObject arg = evalTerm(subList.getChild(i).getChild(0));
 			args.set(i, arg);
 		}
-		return args;
+		funcEnv.put(ARGNAME, args);
 	}
-	
+
 	public static double getDouble(QObject o)
 	{
 		return QFunction.getDouble(o);
@@ -195,13 +274,12 @@ public class QInterpreter {
 		else if(":".equals(op.getText()))
 		{
 			Environment funcEnv = new Environment(_curEnv);
-			QObject args = new QObject(term1.getMode());
-			args.set(0, term1);
-			args.set(1, term2);
-			funcEnv.put(ARGNAME, args);
+			// Be careful! I assume seq fomral name!
+			funcEnv.put("beg", term1);
+			funcEnv.put("end", term2);
 			return ((QFunction)_curEnv.get("seq")).callPrimitive(funcEnv, this);
 		}
-		else 		throw new RuntimeException("NYI");
+		else 		throw new RuntimeException("NYI1");
 	}
 
 	private Tree buildTree(String codestext) throws RecognitionException {

@@ -47,6 +47,18 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalTerm_nullConst()
+	{
+		QObject expected = QObject.Null;
+
+		CommonTree arg = createTree(QParser.NULL_CONST, null);		
+		QObject actual = _intp.evalTerm(arg);
+		
+		assertNumericEquals(expected, actual);
+	}
+	
+	
+	@Test
 	public void test_evalTerm_XXBINARY()
 	{
 		QObject expected = QObject.createNumeric(3);
@@ -195,23 +207,39 @@ public class QInterpreterTest {
 	}
 	
 	@Test
-	public void test_evalSublist_multiple() throws RecognitionException
+	public void test_assignToFormalList_nullFormalList_multipleArg() throws RecognitionException
 	{
-		// (XXSUBLIST (XXSUB1 1) (XXSUB1 2) (XXSUB1 3))
-		Tree subList = buildSubList("c(1, 2, 3)");
-		QObject ret = _intp.evalSubList(subList);
-
+		Environment target = callAssignToFormalListWithNullFormalList("c(1, 2, 3)");
+		QObject ret = target.get(ARGNAME);
+		
 		assertVector123(ret);
 	}
 
+	// code should include funcname, like "c(1, 2, 3)"
+	private Environment callAssignToFormalListWithNullFormalList(String code) throws RecognitionException {
+		Tree subList = buildSubList(code);
+		
+		Environment target = new Environment(null);
+		_intp.assignToFormalList(subList, null, target);
+		return target;
+	}
+	
+	private Environment callAssignToFormalList(String formalListCode, String code) throws RecognitionException {
+		Tree formalList = parseFormList(formalListCode);
+		Tree subList = buildSubList(code);
+		
+		Environment target = new Environment(null);
+		System.out.println(formalList.toStringTree());
+		_intp.assignToFormalList(subList, formalList, target);
+		return target;
+	}
+	
 	@Test
-	public void test_evalSublist_single() throws RecognitionException
+	public void test_assignToFormalList_nullFormalList_single() throws RecognitionException
 	{
-		// (XXSUBLIST (XXSUB1 1))
-		Tree subList = buildSubList("c(1)");
-		QInterpreter intp = createInterpreter();
-		QObject actual = intp.evalSubList(subList);
-
+		Environment target = callAssignToFormalListWithNullFormalList("c(1)");
+		QObject actual = target.get(ARGNAME);
+		
 		assertEquals("list", actual.getMode());
 		assertEquals(1, actual.getLength());
 		assertNumericEquals(QObject.createNumeric(1), actual.get(0));
@@ -230,16 +258,31 @@ public class QInterpreterTest {
 	public void test_assignToFormalList() throws RecognitionException
 	{
 		Tree subList = buildSubList("c(1)");
-		QInterpreter intp = createInterpreter();
 		
 		Environment target = new Environment(null);
-		intp.assignToFormalList(subList, null, target);
+		_intp.assignToFormalList(subList, null, target);
 		QObject args = target.get(ARGNAME);
 		
 		assertNotNull(args);
 		assertEquals("list", args.getMode());
 		assertEquals(1.0, args.get(0).getValue());
 	}
+
+	// TODO: temp comment out.
+	@Test
+	public void test_assignToFormalList_begEnd() throws RecognitionException
+	{
+		Environment target = callAssignToFormalList("beg, end", "seq(1, 10)");
+		
+		QObject beg = target.get("beg");
+		QObject end = target.get("end");
+		
+		assertNotNull(beg);
+		assertNotNull(end);
+		assertNumericEquals(createNumeric(1), beg);
+		assertNumericEquals(createNumeric(10), end);
+	}
+	
 
 	// code is like "c(1, 2, 3)"
 	private Tree buildSubList(String code) throws RecognitionException {
