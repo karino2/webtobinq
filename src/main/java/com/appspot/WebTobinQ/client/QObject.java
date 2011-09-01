@@ -25,6 +25,11 @@ public class QObject {
 	
 	public static QObject createInt(int val)
 	{
+		return new QObject("integer", val);
+	}
+	
+	public static QObject createNumeric(double val)
+	{
 		return new QObject("numeric", val);
 	}
 	

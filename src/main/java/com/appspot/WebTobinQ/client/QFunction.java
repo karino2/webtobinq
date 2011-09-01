@@ -49,13 +49,13 @@ public class QFunction extends QObject {
 				QObject args = funcEnv.get("...");
 				if(args.getLength() != 2)
 					throw new RuntimeException("seq argument seems wrong");
-				int beg = (Integer)args.get(0).getValue();
-				int end = (Integer)args.get(1).getValue();
+				double beg = getDouble(args.get(0));
+				double end = getDouble(args.get(1));
 				
 				QObject res = new QObject("numeric");
-				for(int i = beg; i <= end; i++)
+				for(int i = 0; i <= end-beg; i++)
 				{
-					res.set(i-beg, QObject.createInt(i));
+					res.set(i, QObject.createNumeric(beg+i));
 				}
 				return res;				
 			}
@@ -86,8 +86,8 @@ public class QFunction extends QObject {
 			    chart.addCurve();
 			    for (int i = 0; i < x.getLength(); i++)
 			    {
-			    	int x1 = (Integer)x.get(i).getValue();
-			    	int y1 = (Integer)y.get(i).getValue();
+			    	double x1 = getDouble(x.get(i));
+			    	double y1 = getDouble(y.get(i));
 			    	chart.getCurve().addPoint(x1, y1);
 			    }
 			    // chart.getCurve().setLegendLabel("x, y");
@@ -101,6 +101,13 @@ public class QFunction extends QObject {
 		};
 	}
 	
+	public static double getDouble(QObject value) {
+		if(value.getMode() == "integer")
+			return (Integer)value.getValue();
+		if(value.getMode() == "numeric")
+			return (Double)value.getValue();
+		return 0;
+	}
 	public String toString()
 	{
 		return "function ...";

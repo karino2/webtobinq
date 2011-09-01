@@ -44,14 +44,15 @@ public class QInterpreter {
 		println("<deb#>" + str);
 	}
 	
-	public Object eval(String codestext)
+	public QObject eval(String codestext)
 	{
-		Object ret = null;
+		QObject ret = null;
 		try {
 			Tree tree = buildTree(codestext);
 			debugPrint(tree.toStringTree());
 			ret = evalTree(tree);
-			println(ret.toString());
+			if(ret != null)
+				println(ret.toString());
 		} catch (RecognitionException e) {
 			debugPrint("#parse Error!");
 			_console.write(e.toString());
@@ -60,8 +61,8 @@ public class QInterpreter {
 		return ret;
 	}
 
-	Object evalTree(Tree tree) {
-		Object ret = null;
+	QObject evalTree(Tree tree) {
+		QObject ret = null;
 		ForestIterater iter = new ForestIterater(tree);
 		while(iter.hasNext())
 		{
@@ -88,8 +89,12 @@ public class QInterpreter {
 	
 	public QObject evalTerm(Tree term)
 	{
+		// R use numeric for most of the case (instead of int).
 		if(term.getType() == QParser.DecimalLiteral)
-			return QObject.createInt(Integer.valueOf(term.getText()));
+			return QObject.createNumeric(Double.valueOf(term.getText()));
+//			return QObject.createInt(Integer.valueOf(term.getText()));
+		if(term.getType() == QParser.FloatingPointLiteral)
+			return QObject.createNumeric(Double.valueOf(term.getText()));
 		if(term.getType() == QParser.XXBINARY) // recursive call now.
 			return evalBinary(term.getChild(0), term.getChild(1), term.getChild(2));
 		if(term.getType() == QParser.XXFUNCALL)
@@ -142,11 +147,16 @@ public class QInterpreter {
 		}
 		return args;
 	}
+	
+	public static double getDouble(QObject o)
+	{
+		return QFunction.getDouble(o);
+	}
 
 	QObject evalPlus(QObject arg1, QObject arg2)
 	{
 		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
-			return QObject.createInt(((Integer)arg1.getValue())+(Integer)arg2.getValue());
+			return QObject.createNumeric(getDouble(arg1)+getDouble(arg2));
 		QObject ret = new QObject(arg1.getMode());
 		QObject r1 = arg1;
 		QObject r2 = arg2;
@@ -156,9 +166,9 @@ public class QInterpreter {
 			r1 = arg1.recycle(r2.getLength());	
 		for(int i = 0; i < r1.getLength(); i++)
 		{
-			int i1 = (Integer)r1.get(i).getValue();
-			int i2 = (Integer)r2.get(i).getValue();
-			ret.set(i, QObject.createInt(i1+i2));
+			double i1 = getDouble(r1.get(i));
+			double i2 = getDouble(r2.get(i));
+			ret.set(i, QObject.createNumeric(i1+i2));
 		}
 		return ret;
 	}

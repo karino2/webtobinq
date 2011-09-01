@@ -52,7 +52,7 @@ public class WebTobinQ implements EntryPoint, Plotable {
 		VerticalPanel dialogVPanel = new VerticalPanel();
 		dialogVPanel.add(getChart());
 		dialogVPanel.addStyleName("dialogVPanel");
-		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
+		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_LEFT);
 		dialogVPanel.add(closeButton);
 		_dialogBox.setWidget(dialogVPanel);
 	  
