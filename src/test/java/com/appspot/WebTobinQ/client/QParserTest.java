@@ -80,10 +80,37 @@ public class QParserTest {
 	{
 		// (XXSUBSCRIPT [ a (XXSUBLIST (XXSUB1 1)))
 		CommonTree actual_tree = parseExpression("a[1]");
-		
 		assertEquals(QParser.XXSUBSCRIPT, actual_tree.getType());
 		assertEqualsNoType("[", actual_tree.getChild(0));
-		assertEquals(QParser.XXSUBLIST, actual_tree.getChild(1).getType());
+		assertEquals(QParser.XXSUBLIST, actual_tree.getChild(2).getType());
+	}
+	
+	@Test
+	public void test_expr_lvalSubscript() throws RecognitionException
+	{
+		CommonTree actual_tree = parseExpression("a[1]-b[1]");
+		// (XXBINARY - (XXSUBSCRIPT [ a (XXSUBLIST (XXSUB1 1))) (XXSUBSCRIPT [ b (XXSUBLIST (XXSUB1 1))))
+		assertEquals(3, actual_tree.getChildCount());
+	}
+	
+	public void debP(CommonTree tree)
+	{
+		System.out.println(tree.toStringTree());		
+	}
+	
+	@Test
+	public void test_expr_paren() throws RecognitionException
+	{
+		CommonTree actual_tree = parseExpression("(1+2)/3");
+		// (XXBINARY / (XXPAREN (XXBINARY + 1 2)) 3)
+		assertEquals(QParser.XXPAREN, actual_tree.getChild(1).getType());
+	}
+	
+	@Test
+	public void test_expr_dotsymbol() throws RecognitionException
+	{
+		CommonTree actual = parseExpression("gdp.year");
+		assertEquals("gdp.year", actual.getText());
 	}
 	
 	private void assertEqualsNoType(String expect, Tree actual) {
@@ -139,11 +166,16 @@ public class QParserTest {
 	}
 
 	public static QParser createParser(String code) {
-		CharStream codes = new ANTLRStringStream(code);
-		QLexer lex = new QLexer(codes);
+		QLexer lex = createLexer(code);
 		CommonTokenStream tokens = new CommonTokenStream(lex);
 		QParser parser = new QParser(tokens);
 		return parser;
+	}
+
+	private static QLexer createLexer(String code) {
+		CharStream codes = new ANTLRStringStream(code);
+		QLexer lex = new QLexer(codes);
+		return lex;
 	}
 
 }

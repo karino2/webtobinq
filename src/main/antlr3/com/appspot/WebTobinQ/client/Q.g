@@ -155,12 +155,8 @@ binary_op
 			| LEFT_ASSIGN | RIGHT_ASSIGN)
 	;
 
-
-expr	: (lexpr ->lexpr)
-	    (
-		binary_op expr
-		  -> ^(XXBINARY binary_op lexpr expr)
-		|'(' sublist ')'
+refer	: (lexpr -> lexpr)
+	    ('(' sublist ')'
 		  -> ^(XXFUNCALL lexpr sublist)
 		| LBB sublist ']' ']'
 		  -> ^(XXSUBSCRIPT LBB lexpr sublist)
@@ -168,7 +164,14 @@ expr	: (lexpr ->lexpr)
 		  -> ^(XXSUBSCRIPT '[' lexpr sublist)
 		| ('$' | '@') symbol_or_conststr
 		  -> ^(XXBINARY '$'? '@'? lexpr symbol_or_conststr)
-	  )?
+	    )?
+	  ;
+	  
+expr	: (refer ->refer)
+	    (
+		binary_op expr
+		  -> ^(XXBINARY binary_op refer expr)
+	    )?
 	;
 
 
@@ -310,6 +313,7 @@ fragment
 Letter
     :  
 	// '\u0024' |  $ is special character in R
+	'\u002e' | // . is normal character in R
        '\u0041'..'\u005a' |
        '\u005f' |
        '\u0061'..'\u007a' |

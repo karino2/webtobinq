@@ -108,6 +108,12 @@ public class QInterpreter {
 			return QObject.Null;
 		if(term.getType() == QParser.XXSUBSCRIPT)
 			return evalSubscript(term);
+		if(term.getType() == QParser.XXPAREN)
+		{
+			if(term.getChildCount() != 1)
+				throw new RuntimeException("child num of XXPAREN is not 1. Which case?");
+			return evalExpr(term.getChild(0));
+		}
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
 	}

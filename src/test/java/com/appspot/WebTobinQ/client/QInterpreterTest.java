@@ -29,9 +29,18 @@ public class QInterpreterTest {
 	public void test_eval_plus()
 	{
 		QObject expected = QObject.createNumeric(5);
-		QInterpreter intp = createInterpreter();
-		QObject actual = intp.eval("2+3");
+
+		QObject actual = _intp.eval("2+3");
 		assertNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_eval_paren()
+	{
+		QObject expected = QObject.createNumeric(3);
+		
+		QObject actual = _intp.eval("(4+8)/4");
+		assertNumericEquals(expected, actual);		
 	}
 	
 	@Test
@@ -308,7 +317,6 @@ public class QInterpreterTest {
 		assertEquals(1.0, args.get(0).getValue());
 	}
 
-	// TODO: temp comment out.
 	@Test
 	public void test_assignToFormalList_begEnd() throws RecognitionException
 	{
