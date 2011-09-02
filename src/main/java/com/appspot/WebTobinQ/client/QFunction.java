@@ -119,12 +119,9 @@ public class QFunction extends QObject {
 					*/
 			    chart.setChartSize(350, 250);
 			    chart.addCurve();
-			    for (int i = 0; i < x.getLength(); i++)
-			    {
-			    	double x1 = getDouble(x.get(i));
-			    	double y1 = getDouble(y.get(i));
-			    	chart.getCurve().addPoint(x1, y1);
-			    }
+				GChart.Curve curve = chart.getCurve();
+				intp.debugPrint("curveIndex="+chart.getCurveIndex(curve));
+			    addPoints(x, y, curve);
 			    // chart.getCurve().setLegendLabel("x, y");
 			    chart.getXAxis().setAxisLabel("x");
 			    chart.getYAxis().setAxisLabel("y");
@@ -136,6 +133,30 @@ public class QFunction extends QObject {
 		};
 	}
 	
+	public static QObject createLines(Plotable plotable) {
+		// Share to createPlot. Be careful!
+		_plotable = plotable;
+		return new QFunction(parseFormalList("x, y=NULL"), null) {
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject x = funcEnv.get("x");
+				QObject y = funcEnv.get("y");
+				if(y == QObject.Null)
+					throw new RuntimeException("lines: y=NULL, NYI");
+				if(x.getLength() != y.getLength())
+					throw new RuntimeException("lines: x, y length differ");
+				GChart chart = _plotable.getChart();
+				chart.addCurve();
+				GChart.Curve curve = chart.getCurve();
+				intp.debugPrint("curveIndex="+chart.getCurveIndex(curve));
+			    addPoints(x, y, curve);
+				
+			    _plotable.showChart();
+				return null;
+			}			
+		};
+	}
 	public static double getDouble(QObject value) {
 		if(value.getMode() == "integer")
 			return (Integer)value.getValue();
@@ -143,6 +164,15 @@ public class QFunction extends QObject {
 			return (Double)value.getValue();
 		return 0;
 	}
+	private static void addPoints(QObject x, QObject y, GChart.Curve curve) {
+		for (int i = 0; i < x.getLength(); i++)
+		{
+			double x1 = getDouble(x.get(i));
+			double y1 = getDouble(y.get(i));
+			curve.addPoint(x1, y1);
+		}
+	}
+
 	public String toString()
 	{
 		return "function ...";
