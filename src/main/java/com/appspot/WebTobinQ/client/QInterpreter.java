@@ -391,6 +391,16 @@ public class QInterpreter {
 		});
 	}
 
+	QObject evalGT(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public QObject execute(double i, double j) {
+				return QObject.createLogical(i > j);
+			}
+			
+		});
+	}
+	
 	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
 		if(QParser.LEFT_ASSIGN == op.getType() ||
 				QParser.EQ_ASSIGN == op.getType())
@@ -424,6 +434,10 @@ public class QInterpreter {
 		else if(QParser.LE == op.getType())
 		{
 			return evalLE(term1, term2);
+		}
+		else if(QParser.GT == op.getType())
+		{
+			return evalGT(term1, term2);
 		}
 		else if(":".equals(op.getText()))
 		{
