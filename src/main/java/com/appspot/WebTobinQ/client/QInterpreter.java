@@ -87,10 +87,10 @@ public class QInterpreter {
 		QObject ret = null;
 		if(t.getChildCount() == 0)
 			return ret;
-		return evalTerm(t.getChild(0));
+		return evalExpr(t.getChild(0));
 	}
 	
-	public QObject evalTerm(Tree term)
+	public QObject evalExpr(Tree term)
 	{
 		// R use numeric for most of the case (instead of int).
 		if(term.getType() == QParser.DecimalLiteral)
@@ -166,7 +166,7 @@ public class QInterpreter {
 			if(isAssigned(sym.getText(), assigned))
 				continue;
 			Tree val = formArg.getChild(1);
-			funcEnv.put(sym.getText(), evalTerm(val));
+			funcEnv.put(sym.getText(), evalExpr(val));
 		}
 	}
 
@@ -179,7 +179,7 @@ public class QInterpreter {
 				continue;
 			Tree formArg = getNextFormArgSym(formalList, assigned);
 			Tree val = node.getChild(0);
-			funcEnv.put(formArg.getText(), evalTerm(val));			
+			funcEnv.put(formArg.getText(), evalExpr(val));			
 			assigned.put(formArg.getText(), true);
 		}
 	}
@@ -213,7 +213,7 @@ public class QInterpreter {
 				continue;
 			Tree sym = node.getChild(0);
 			Tree val = node.getChild(1);
-			funcEnv.put(sym.getText(), evalTerm(val));
+			funcEnv.put(sym.getText(), evalExpr(val));
 			
 			assigned.put(sym.getText(), true);
 		}
@@ -223,7 +223,7 @@ public class QInterpreter {
 		QObject args = new QObject("list");
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
-			QObject arg = evalTerm(subList.getChild(i).getChild(0));
+			QObject arg = evalExpr(subList.getChild(i).getChild(0));
 			args.set(i, arg);
 		}
 		funcEnv.put(ARGNAME, args);
@@ -263,11 +263,11 @@ public class QInterpreter {
 				debugPrint("lvalue not symbol, throw");
 				throw new RuntimeException("lvalue of assign is not SYMBOL, NYI");
 			}
-			_curEnv.put(arg1.getText(), evalTerm(arg2));
+			_curEnv.put(arg1.getText(), evalExpr(arg2));
 			return null;
 		}
-		QObject term1 = evalTerm(arg1);
-		QObject term2 = evalTerm(arg2);
+		QObject term1 = evalExpr(arg1);
+		QObject term2 = evalExpr(arg2);
 		if("+".equals(op.getText()))
 		{
 			return evalPlus(term1, term2);

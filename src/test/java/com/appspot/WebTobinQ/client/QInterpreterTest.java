@@ -35,31 +35,31 @@ public class QInterpreterTest {
 	}
 	
 	@Test
-	public void test_evalTerm_int()
+	public void test_evalExpr_int()
 	{
 		QObject expected = QObject.createNumeric(3);
 
 		QInterpreter intp = createInterpreter();
 		CommonTree arg = createIntTree("3");
 		
-		QObject actual = intp.evalTerm(arg);
+		QObject actual = intp.evalExpr(arg);
 		assertNumericEquals(expected, actual);
 	}
 	
 	@Test
-	public void test_evalTerm_nullConst()
+	public void test_evalExpr_nullConst()
 	{
 		QObject expected = QObject.Null;
 
 		CommonTree arg = createTree(QParser.NULL_CONST, null);		
-		QObject actual = _intp.evalTerm(arg);
+		QObject actual = _intp.evalExpr(arg);
 		
 		assertNumericEquals(expected, actual);
 	}
 	
 	
 	@Test
-	public void test_evalTerm_XXBINARY()
+	public void test_evalExpr_XXBINARY()
 	{
 		QObject expected = QObject.createNumeric(3);
 		
@@ -70,7 +70,7 @@ public class QInterpreterTest {
 		parent.addChild(createIntTree("1"));
 		parent.addChild(createIntTree("2"));
 		
-		QObject actual = intp.evalTerm(parent);
+		QObject actual = intp.evalExpr(parent);
 		
 		assertNumericEquals(expected, actual);
 	}
@@ -81,12 +81,12 @@ public class QInterpreterTest {
 	}
 	
 	@Test
-	public void test_evalTerm_symbol()
+	public void test_evalExpr_symbol()
 	{
 		QInterpreter intp = createInterpreter();
 		Object expected = intp._curEnv.get("c");
 		
-		Object actual = intp.evalTerm(createTree(QParser.SYMBOL, "c"));
+		Object actual = intp.evalExpr(createTree(QParser.SYMBOL, "c"));
 		assertEquals(expected, actual);
 	}
 
