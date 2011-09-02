@@ -75,6 +75,17 @@ public class QParserTest {
 		
 	}
 	
+	@Test
+	public void test_expr_subscript() throws RecognitionException
+	{
+		// (XXSUBSCRIPT [ a (XXSUBLIST (XXSUB1 1)))
+		CommonTree actual_tree = parseExpression("a[1]");
+		
+		assertEquals(QParser.XXSUBSCRIPT, actual_tree.getType());
+		assertEqualsNoType("[", actual_tree.getChild(0));
+		assertEquals(QParser.XXSUBLIST, actual_tree.getChild(1).getType());
+	}
+	
 	private void assertEqualsNoType(String expect, Tree actual) {
 		assertEquals(expect, actual.getText());
 	}

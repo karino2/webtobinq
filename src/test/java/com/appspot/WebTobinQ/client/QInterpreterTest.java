@@ -75,6 +75,47 @@ public class QInterpreterTest {
 		assertNumericEquals(expected, actual);
 	}
 	
+	@Test
+	public void test_getInt_numeric()
+	{
+		int expected = 3;		
+		int actual = _intp.getInt(createNumeric(3));
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalExpr_subscript_one() throws RecognitionException
+	{
+		QObject expected = createNumeric(2);
+		
+		QObject target = createNumeric(1);
+		target.set(1, expected);
+		_intp._curEnv.put("a", target);
+		
+		Tree tree = parseExpression("a[2]");
+		QObject actual = _intp.evalExpr(tree);
+		
+		assertNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalExpr_subscript_two() throws RecognitionException
+	{
+		QObject q2 = createNumeric(2);
+		
+		QObject target = createNumeric(1);
+		target.set(1, q2);
+		_intp._curEnv.put("a", target);
+		
+		Tree tree = parseExpression("a[1:2]");
+		QObject actual = _intp.evalExpr(tree);
+
+		assertEquals(2, actual.getLength());
+		assertNumericEquals(createNumeric(1), actual.get(0));
+		assertNumericEquals(createNumeric(2), actual.get(1));
+	}
+	
 	CommonTree createTree(int type, String val)
 	{
 		return new CommonTree(new CommonToken(type, val));
@@ -229,7 +270,6 @@ public class QInterpreterTest {
 		Tree subList = buildSubList(code);
 		
 		Environment target = new Environment(null);
-		System.out.println(formalList.toStringTree());
 		_intp.assignToFormalList(subList, formalList, target);
 		return target;
 	}

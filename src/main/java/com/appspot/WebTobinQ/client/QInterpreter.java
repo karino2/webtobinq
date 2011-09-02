@@ -106,8 +106,49 @@ public class QInterpreter {
 			return _curEnv.get(term.getText());
 		if(term.getType() == QParser.NULL_CONST)
 			return QObject.Null;
+		if(term.getType() == QParser.XXSUBSCRIPT)
+			return evalSubscript(term);
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
+	}
+
+	// (XXSUBSCRIPT '[' lexpr sublist)
+	// or (XXSUBSCRIPT LBB lexpr sublist)
+	QObject evalSubscript(Tree term) {
+		if(term.getChild(0).getType() == QParser.LBB)
+			throw new RuntimeException("NYI of subscript [[]]");
+		QObject lexpr = evalExpr(term.getChild(1));
+		Tree sublistTree = term.getChild(2);
+		if(sublistTree.getChildCount() > 1)
+			throw new RuntimeException("NYI: multi dimentional array");
+		if(sublistTree.getChild(0).getType() != QParser.XXSUB1)
+			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
+		QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
+		if(range.getLength () == 1)
+		{
+			int  index = getInt(range);
+			// should I clone?
+			return lexpr.get(index-1);
+		}
+		QObject ret = null;
+		for(int i = 0; i < range.getLength(); i++)
+		{
+			int index = getInt(range.get(i));
+			QObject q = lexpr.get(index-1);
+			if(ret == null)
+				ret = q.shallowClone();
+			else
+				ret.set(i, q);
+		}
+		return ret;
+	}
+
+	int getInt(QObject qObject) {
+		if(qObject.getMode() == "integer")
+			return (Integer)qObject.getValue();
+		if(qObject.getMode() == "numeric")
+			return (int)(double)(Double)qObject.getValue();
+		throw new RuntimeException("unsupported mode for getInt: " + qObject.getMode());
 	}
 
 	// (XXFUNCALL c (XXSUBLIST (XXSUB1 1) (XXSUB1 2)))
