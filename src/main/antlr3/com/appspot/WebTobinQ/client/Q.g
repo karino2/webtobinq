@@ -34,6 +34,8 @@ OR2='||';
 RIGHT_ASSIGN='->';
 WHILE='while';
 REPEAT='repeat';
+TRUE='TRUE';
+FALSE='FALSE';
 // imaginary, from gram.y function name in R source.
 XXVALUE;
 XXBINARY;
@@ -262,8 +264,8 @@ num_const
 	: integerLiteral
 	| FloatingPointLiteral
 	| 'NA'
-	| 'TRUE'
-	| 'FALSE'
+	| TRUE
+	| FALSE
 	| 'Inf'
 	| 'NaN'
 	| 'NA_integer_'

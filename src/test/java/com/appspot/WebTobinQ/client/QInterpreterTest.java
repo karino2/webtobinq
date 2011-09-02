@@ -44,6 +44,51 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalLE_oneLe_true()
+	{
+		QObject expected = createLogical(true);
+
+		QObject arg1 = createNumeric(1);
+		QObject arg2 = createNumeric(2);
+		QObject actual = _intp.evalLE(arg1, arg2);
+		
+		assertEquals(expected, actual);		
+	}
+	
+	@Test
+	public void test_evalLE_oneLe_false()
+	{
+		QObject expected = createLogical(false);
+
+		QObject arg1 = createNumeric(2);
+		QObject arg2 = createNumeric(1);
+		QObject actual = _intp.evalLE(arg1, arg2);
+		
+		assertEquals(expected, actual);		
+	}
+	
+	@Test
+	public void test_evalLE_vectorLe()
+	{
+		
+		QObject arg1 = createNumeric(1);
+		QObject q3 = createNumeric(3);
+		arg1.set(1, q3);
+		
+		QObject arg2 = createNumeric(2);
+		
+		QObject actual = _intp.evalLE(arg1, arg2);
+
+		assertEquals(2, actual.getLength());
+		assertEquals(createLogical(true), actual.get(0));
+		assertEquals(createLogical(false), actual.get(1));
+	}
+	
+	private QObject createLogical(boolean b) {
+		return QObject.createLogical(b);
+	}
+
+	@Test
 	public void test_evalExpr_int()
 	{
 		QObject expected = QObject.createNumeric(3);
@@ -107,6 +152,31 @@ public class QInterpreterTest {
 		
 		assertNumericEquals(expected, actual);
 	}
+	
+	@Test
+	public void test_eval_subscript_logical()
+	{
+		QObject expected = createNumeric(2);
+		QObject actual = _intp.eval("(1:3)[c(FALSE, TRUE, FALSE)]");
+		assertNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_eval_subscript_logical_firstElement()
+	{
+		QObject expected = createNumeric(1);
+		QObject actual = _intp.eval("(1:3)[c(TRUE, FALSE, FALSE)]");
+		assertNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_eval_mean()
+	{
+		QObject expected = createNumeric(2);
+		QObject actual = _intp.eval("mean(1:3)");
+		assertNumericEquals(expected, actual);
+	}
+	
 	
 	@Test
 	public void test_evalExpr_subscript_two() throws RecognitionException

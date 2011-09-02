@@ -5,6 +5,8 @@ import java.util.ArrayList;
 public class QObject {
 	public static QObject NA = new QObject("logical");
 	public static QObject Null = new QObject("NULL");
+	public static QObject TRUE = new QObject("logical", 1);
+	public static QObject FALSE = new QObject("logical", 0);
 
 	
 	Object _val;
@@ -54,10 +56,19 @@ public class QObject {
 		{
 			if(buf.length() != 0)
 				buf.append(" ");
-			if(obj == QObject.NA)
-				buf.append("NA");
+			if(obj.getMode() == "logical")
+			{
+				if(obj == QObject.NA)
+					buf.append("NA");
+				else if((Integer)obj._val == 1)
+					buf.append("TRUE");
+				else
+					buf.append("FALSE");
+			}
 			else
+			{
 				buf.append(obj._val.toString());
+			}
 		}
 		return buf.toString();
 	}
@@ -172,9 +183,27 @@ public class QObject {
 		}
 		return true;
 	}
+	
+	public int hashCode(){
+		int hash = 0;
+		if(getLength() == 1)
+			hash = _val.hashCode();
+		else
+		{
+			for(int i = 0; i < getLength(); i++)
+				hash += get(i).hashCode();
+		}
+		return getMode().hashCode()+hash;
+	}
 
 	private boolean equalOne(QObject l, QObject r) {
 		return l.getMode() == r.getMode()
 		 		&&(l.getValue() == r.getValue());
+	}
+
+	public static QObject createLogical(boolean b) {
+		if(b)
+			return TRUE.shallowClone();
+		return FALSE.shallowClone();
 	}
 }

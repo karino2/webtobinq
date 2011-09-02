@@ -54,8 +54,13 @@ public class QFunction extends QObject {
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
 				QObject args = funcEnv.get(ARGNAME);
-				// should validate args here.
-				return args;
+				QObjectBuilder bldr = new QObjectBuilder();
+				for(int i = 0; i < args.getLength(); i++)
+				{
+					// should validate args here.
+					bldr.add(args.get(i));
+				}
+				return bldr.result();
 				
 			}
 		};
@@ -172,7 +177,80 @@ public class QFunction extends QObject {
 			curve.addPoint(x1, y1);
 		}
 	}
+	
+	public static double sumObj(QObject obj)
+	{
+		int len = obj.getLength();
+		double sum = 0;
+		for(int i = 0; i < len; i++)
+		{
+			sum += getDouble(obj.get(i));
+		}
+		return sum;
+	}
+	
+	public static QFunction createVar()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get(ARGNAME);
+				int len = args.getLength();
+				double mean = sumObj(args)/len;
+				
+				double var = 0;
+				for(int i = 0; i < len; i++)
+				{
+					double x = getDouble(args.get(i));
+					var += (x - mean)*(x-mean);
+				}
+				var = var/(len-1);
+				return QObject.createNumeric(var);
+				
+			}
+		};
+	}
 
+	
+	
+	public static QFunction createMean()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get(ARGNAME);
+				int len = args.getLength();
+				double mean = sumObj(args)/len;
+				return QObject.createNumeric(mean);
+				
+			}
+		};
+	}
+
+
+	public static QFunction createSqrt()
+	{
+		return new QFunction(parseFormalList("x"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get("x");
+				int len = args.getLength();
+				if(len == 1)
+					return QObject.createNumeric(Math.sqrt(getDouble(args)));
+				QObjectBuilder bldr = new QObjectBuilder();
+				for(int i = 0; i < len; i++)
+				{
+					QObject x = QObject.createNumeric(Math.sqrt(getDouble(args.get(i))));
+					bldr.add(x);
+				}
+				return bldr.result();
+			}
+		};
+	}
+	
 	public String toString()
 	{
 		return "function ...";

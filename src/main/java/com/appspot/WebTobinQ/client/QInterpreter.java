@@ -22,6 +22,9 @@ public class QInterpreter {
 		_curEnv.put("seq", QFunction.createSeq());
 		_curEnv.put("plot", QFunction.createPlot(_plotable));
 		_curEnv.put("lines", QFunction.createLines(_plotable));
+		_curEnv.put("mean", QFunction.createMean());
+		_curEnv.put("var", QFunction.createVar());
+		_curEnv.put("sqrt", QFunction.createSqrt());
 	}
 	
 	public QInterpreter(Writable console) {
@@ -105,7 +108,11 @@ public class QInterpreter {
 		if(term.getType() == QParser.SYMBOL)
 			return _curEnv.get(term.getText());
 		if(term.getType() == QParser.NULL_CONST)
-			return QObject.Null;
+			return QObject.Null;		
+		if(term.getType() == QParser.TRUE)
+			return QObject.TRUE;
+		if(term.getType() == QParser.FALSE)
+			return QObject.FALSE;
 		if(term.getType() == QParser.XXSUBSCRIPT)
 			return evalSubscript(term);
 		if(term.getType() == QParser.XXPAREN)
@@ -130,23 +137,40 @@ public class QInterpreter {
 		if(sublistTree.getChild(0).getType() != QParser.XXSUB1)
 			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
 		QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
+		if(range.getMode() == "logical")
+			return subscriptByLogical(lexpr, range);
+		return subscriptByNumber(lexpr, range);
+	}
+	
+	private QObject subscriptByLogical(QObject lexpr, QObject range) {
+		if(range.getLength() != lexpr.getLength())
+			throw new RuntimeException("subscriptByLogical: length of logical list and lexpr is different");
+		QObjectBuilder bldr = new QObjectBuilder();
+		for(int i = 0; i < range.getLength(); i++)
+		{
+			QObject bool = range.get(i);
+			if(QObject.TRUE.equals(bool))
+				bldr.add(lexpr.get(i));
+				
+		}
+		return bldr.result();
+	}
+
+	private QObject subscriptByNumber(QObject lexpr, QObject range) {
 		if(range.getLength () == 1)
 		{
 			int  index = getInt(range);
 			// should I clone?
 			return lexpr.get(index-1);
 		}
-		QObject ret = null;
+		QObjectBuilder bldr = new QObjectBuilder();
 		for(int i = 0; i < range.getLength(); i++)
 		{
 			int index = getInt(range.get(i));
 			QObject q = lexpr.get(index-1);
-			if(ret == null)
-				ret = q.shallowClone();
-			else
-				ret.set(i, q);
+			bldr.add(q);
 		}
-		return ret;
+		return bldr.result();
 	}
 
 	int getInt(QObject qObject) {
@@ -268,10 +292,21 @@ public class QInterpreter {
 
 	private void assignToDefaultArgs(Tree subList, Environment funcEnv) {
 		QObject args = new QObject("list");
+		int argNum = 0;
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			QObject arg = evalExpr(subList.getChild(i).getChild(0));
-			args.set(i, arg);
+			if(arg.getMode() == "list" || arg.getLength() == 1)
+			{
+				args.set(argNum++, arg);
+			}
+			else
+			{
+				for(int j = 0; j < arg.getLength(); j++)
+				{
+					args.set(argNum++, arg.get(j));
+				}
+			}
 		}
 		funcEnv.put(ARGNAME, args);
 	}
@@ -282,14 +317,14 @@ public class QInterpreter {
 	}
 	
 	interface doubleBinaryOperable {
-		double execute(double i, double j);
+		QObject execute(double i, double j);
 	}
 	
 	QObject evalBinaryDouble(QObject arg1, QObject arg2, doubleBinaryOperable op)
 	{
 		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
-			return QObject.createNumeric(op.execute(getDouble(arg1),getDouble(arg2)));
-		QObject ret = new QObject(arg1.getMode());
+			return op.execute(getDouble(arg1),getDouble(arg2));
+		QObjectBuilder bldr = new QObjectBuilder();
 		QObject r1 = arg1;
 		QObject r2 = arg2;
 		if(r1.getLength() > r2.getLength())
@@ -300,17 +335,18 @@ public class QInterpreter {
 		{
 			double i1 = getDouble(r1.get(i));
 			double i2 = getDouble(r2.get(i));
-			ret.set(i, QObject.createNumeric(op.execute(i1, i2)));
+			QObject q = op.execute(i1, i2);
+			bldr.add(q);
 		}
-		return ret;
+		return bldr.result();
 		
 	}
 
 	QObject evalPlus(QObject arg1, QObject arg2)
 	{
 		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
-			public double execute(double i, double j) {
-				return i+j;
+			public QObject execute(double i, double j) {
+				return QObject.createNumeric(i+j);
 			}
 			
 		});
@@ -319,8 +355,8 @@ public class QInterpreter {
 	QObject evalMinus(QObject arg1, QObject arg2)
 	{
 		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
-			public double execute(double i, double j) {
-				return i-j;
+			public QObject execute(double i, double j) {
+				return QObject.createNumeric(i-j);
 			}
 			
 		});
@@ -328,8 +364,8 @@ public class QInterpreter {
 	QObject evalMultiple(QObject arg1, QObject arg2)
 	{
 		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
-			public double execute(double i, double j) {
-				return i*j;
+			public QObject execute(double i, double j) {
+				return QObject.createNumeric(i*j);
 			}
 			
 		});
@@ -337,8 +373,19 @@ public class QInterpreter {
 	QObject evalDivide(QObject arg1, QObject arg2)
 	{
 		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
-			public double execute(double i, double j) {
-				return i/j;
+			public QObject execute(double i, double j) {
+				return QObject.createNumeric(i/j);
+			}
+			
+		});
+	}
+	
+	// <=
+	QObject evalLE(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public QObject execute(double i, double j) {
+				return QObject.createLogical(i <= j);
 			}
 			
 		});
@@ -352,6 +399,7 @@ public class QInterpreter {
 				debugPrint("lvalue not symbol, throw");
 				throw new RuntimeException("lvalue of assign is not SYMBOL, NYI");
 			}
+			// TODO: I think we should clone here.
 			_curEnv.put(arg1.getText(), evalExpr(arg2));
 			return null;
 		}
@@ -372,6 +420,10 @@ public class QInterpreter {
 		else if("/".equals(op.getText()))
 		{
 			return evalDivide(term1, term2);
+		}
+		else if(QParser.LE == op.getType())
+		{
+			return evalLE(term1, term2);
 		}
 		else if(":".equals(op.getText()))
 		{
