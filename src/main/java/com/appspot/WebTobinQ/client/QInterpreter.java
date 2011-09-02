@@ -274,11 +274,15 @@ public class QInterpreter {
 	{
 		return QFunction.getDouble(o);
 	}
-
-	QObject evalPlus(QObject arg1, QObject arg2)
+	
+	interface doubleBinaryOperable {
+		double execute(double i, double j);
+	}
+	
+	QObject evalBinaryDouble(QObject arg1, QObject arg2, doubleBinaryOperable op)
 	{
 		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
-			return QObject.createNumeric(getDouble(arg1)+getDouble(arg2));
+			return QObject.createNumeric(op.execute(getDouble(arg1),getDouble(arg2)));
 		QObject ret = new QObject(arg1.getMode());
 		QObject r1 = arg1;
 		QObject r2 = arg2;
@@ -290,11 +294,49 @@ public class QInterpreter {
 		{
 			double i1 = getDouble(r1.get(i));
 			double i2 = getDouble(r2.get(i));
-			ret.set(i, QObject.createNumeric(i1+i2));
+			ret.set(i, QObject.createNumeric(op.execute(i1, i2)));
 		}
 		return ret;
+		
 	}
 
+	QObject evalPlus(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public double execute(double i, double j) {
+				return i+j;
+			}
+			
+		});
+	}
+
+	QObject evalMinus(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public double execute(double i, double j) {
+				return i-j;
+			}
+			
+		});
+	}
+	QObject evalMultiple(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public double execute(double i, double j) {
+				return i*j;
+			}
+			
+		});
+	}
+	QObject evalDivide(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public double execute(double i, double j) {
+				return i/j;
+			}
+			
+		});
+	}
 
 	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
 		if(QParser.LEFT_ASSIGN == op.getType() ||
@@ -312,6 +354,18 @@ public class QInterpreter {
 		if("+".equals(op.getText()))
 		{
 			return evalPlus(term1, term2);
+		}
+		else if("-".equals(op.getText()))
+		{
+			return evalMinus(term1, term2);
+		}
+		else if("*".equals(op.getText()))
+		{
+			return evalMultiple(term1, term2);
+		}
+		else if("/".equals(op.getText()))
+		{
+			return evalDivide(term1, term2);
 		}
 		else if(":".equals(op.getText()))
 		{
