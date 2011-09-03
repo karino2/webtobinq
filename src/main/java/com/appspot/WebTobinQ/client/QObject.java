@@ -1,18 +1,37 @@
 package com.appspot.WebTobinQ.client;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class QObject {
-	public static QObject NA = new QObject("logical");
-	public static QObject Null = new QObject("NULL");
+	// typename
+	public static final String CHARACTER_TYPE = "character";
+	
+	
+	public static final QObject NA = new QObject("logical");
+	public static final QObject Null = new QObject("NULL");
 	public static QObject TRUE = new QObject("logical", 1);
 	public static QObject FALSE = new QObject("logical", 0);
 
 	
 	Object _val;
 	String _mode;
+	HashMap<String, QObject> _attributes;
 	ArrayList<QObject> _vector = null;
 	
+	public QObject(String mode, Object val, HashMap<String, QObject> attrs)
+	{
+		this(mode, val);
+		if(attrs != null)
+		{
+			copyAttributes(attrs);
+		}
+	}
+
+	private void copyAttributes(HashMap<String, QObject> attrs) {
+		_attributes = new HashMap<String, QObject>();
+		_attributes.putAll(attrs);
+	}
 	
 	public QObject(String mode, Object val)
 	{
@@ -34,41 +53,138 @@ public class QObject {
 	{
 		return new QObject("numeric", val);
 	}
+
+	public static QObject createCharacter(String val)
+	{
+		return new QObject(CHARACTER_TYPE, val);
+	}
+	
+	// args must be list of vector.
+	public static QObject createDataFrameFromVector(QObject args)
+	{
+		QObject ret = createDataFrame();
+		QObjectBuilder bldr = new QObjectBuilder();
+		for(int i = 0; i < args.getLength(); i++)
+		{
+			QObject o = args.get(i);
+			ret.set(i, o.QClone());
+			if(QObject.Null.equals(o.getAttribute("names")))
+				bldr.add(QObject.createCharacter("V" + (i+1)));
+			else
+				bldr.add(o.getAttribute("names"));
+		}
+		ret.setAttribute("names", bldr.result());
+		QObjectBuilder rowBuilder = new QObjectBuilder();
+		QObject o2 = args.get(0);
+		for(int j = 0; j < o2.getLength(); j++)
+		{
+			rowBuilder.add(QObject.createCharacter(String.valueOf(j+1)));
+		}
+		ret.setAttribute("row.names", rowBuilder.result());
+		return ret;
+	}
+	
+	public QObject QClone() {
+		if(getMode() == "list")
+		{
+			QObject ret = new QObject(getMode(), _val, _attributes);
+			for(int i = 0; i < getLength(); i++)
+			{
+				ret.set(i, get(i).QClone());
+			}
+			return ret;
+		}
+		else  if(getLength() == 1){
+			return new QObject(getMode(), _val, _attributes);
+		}
+		else
+		{
+			QObjectBuilder bldr = new QObjectBuilder();
+			for(int j = 0; j < getLength(); j++)
+			{
+				bldr.add(get(j).QClone());
+			}
+			QObject ret2 =  bldr.result();
+			ret2.copyAttributes(_attributes); //get(0).QClone() does not copy attributes.
+			return ret2;
+		}
+	}
+
+	public static QObject createDataFrame()
+	{
+		QObject df = new QObject("list");
+		df.setAttribute("class", createCharacter("matrix"));
+		return df;
+	}
 	
 	public String getMode()
 	{
 		return _mode;
 	}
 	
+	// getClass is used in Java Object!
+	public String getQClass()
+	{
+		if(_attributes == null ||
+				!_attributes.containsKey("class"))
+			return "";
+		return (String)_attributes.get("class")._val;
+	}
+	
+	public void setAttribute(String name, QObject val)
+	{
+		if(_attributes == null)
+			_attributes = new HashMap<String, QObject>();
+		_attributes.put(name, val);
+	}
+	
+	public QObject getAttribute(String name)
+	{
+		if(_attributes == null ||
+				!_attributes.containsKey(name))
+			return QObject.Null;
+		return _attributes.get(name);
+	}
+	
 	public Object getValue()
 	{
 		return _val;
 	}
-	
+
+	public String toStringOne(QObject obj)
+	{
+		if(obj.getMode() == "logical")
+		{
+			if(obj == QObject.NA)
+				return "NA";
+			else if((Integer)obj._val == 1)
+				return "TRUE";
+			else
+				return "FALSE";
+		}
+		else if(obj.getMode() == "list")
+		{
+			// not R compatible.  
+			return "list: " + obj.toString();
+		}
+		else
+		{
+			if(obj.getMode() == "NULL")
+				return "NULL";
+			return obj._val.toString();
+		}
+	}
 	
 	public String toString()
 	{
-		if(this == NA)
-			return "NA";
+		if(_vector == null)
+			return toStringOne(this);
 		StringBuffer buf = new StringBuffer();
-		ensureVector();
 		for(QObject obj : _vector)
 		{
 			if(buf.length() != 0)
 				buf.append(" ");
-			if(obj.getMode() == "logical")
-			{
-				if(obj == QObject.NA)
-					buf.append("NA");
-				else if((Integer)obj._val == 1)
-					buf.append("TRUE");
-				else
-					buf.append("FALSE");
-			}
-			else
-			{
-				buf.append(obj._val.toString());
-			}
+			buf.append(toStringOne(obj));
 		}
 		return buf.toString();
 	}
@@ -99,7 +215,7 @@ public class QObject {
 	public QObject get(int i)
 	{
 		if(_vector == null)
-			return null;
+			return QObject.Null;
 		return _vector.get(i);
 	}
 
@@ -107,7 +223,7 @@ public class QObject {
 		ensureVector();
 		if(getMode() == "list")
 		{
-			setToList(i, qObject);
+			setToList(i, qObject.QClone());
 			return;
 		}
 		
@@ -118,10 +234,10 @@ public class QObject {
 		if(i == 0) {
 			// something strange.
 			_val = qObject._val;
-			_vector.set(i, qObject.shallowClone());
+			_vector.set(i, qObject.QClone());
 		}
 		else
-			_vector.set(i, qObject);		
+			_vector.set(i, qObject.QClone());		
 	}
 
 	private void setToList(int i, QObject qObject) {
@@ -149,16 +265,14 @@ public class QObject {
 			_vector = new ArrayList<QObject>();
 			if(getMode() == "list")
 				return;
-			if(_vector.size() == 0)
-				_vector.add(0, shallowClone());
-			else
-				_vector.set(0, shallowClone());
+			// Here, _vector.sie() == 0 but _val != 0 the case. QClone doesn't work.
+			_vector.add(0, shallowClone()); 		
 		}
 	}
 	
 	public QObject shallowClone()
 	{
-		return new QObject(getMode(), _val);
+		return new QObject(getMode(), _val, _attributes);
 	}
 
 	// R equals is binary operater who handles vector.
@@ -170,7 +284,7 @@ public class QObject {
 		if(robj == null)
 			return false;
 		if(robj.getLength() != getLength())
-			return false;		
+			return false;
 		if(getLength() == 1)
 		{
 			return equalOne(this, robj);
@@ -197,13 +311,20 @@ public class QObject {
 	}
 
 	private boolean equalOne(QObject l, QObject r) {
-		return l.getMode() == r.getMode()
-		 		&&(l.getValue() == r.getValue());
+		if(l.getMode() != r.getMode())
+			return false;
+		if(l.getValue() == r.getValue())
+			return true; // include NULL.
+		return (l.getValue().equals(r.getValue()));
 	}
 
 	public static QObject createLogical(boolean b) {
 		if(b)
-			return TRUE.shallowClone();
-		return FALSE.shallowClone();
+			return TRUE.QClone();
+		return FALSE.QClone();
+	}
+
+	public static QObject createList() {
+		return new QObject("list");
 	}
 }

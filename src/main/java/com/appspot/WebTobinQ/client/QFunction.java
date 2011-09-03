@@ -147,7 +147,7 @@ public class QFunction extends QObject {
 			{
 				QObject x = funcEnv.get("x");
 				QObject y = funcEnv.get("y");
-				if(y == QObject.Null)
+				if(QObject.Null.equals(y))
 					throw new RuntimeException("lines: y=NULL, NYI");
 				if(x.getLength() != y.getLength())
 					throw new RuntimeException("lines: x, y length differ");

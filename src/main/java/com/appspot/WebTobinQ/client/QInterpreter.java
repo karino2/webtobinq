@@ -57,7 +57,7 @@ public class QInterpreter {
 			Tree tree = buildTree(codestext);
 			debugPrint(tree.toStringTree());
 			ret = evalTree(tree);
-			if(ret != null)
+			if(!QObject.Null.equals(ret))
 				println(ret.toString());
 		} catch (RecognitionException e) {
 			debugPrint("#parse Error!");
@@ -87,7 +87,7 @@ public class QInterpreter {
 
 	// (XXVALUE (XXBINARY + 2 3)), evalValue seems bad name.
 	public QObject evalValue(Tree t) {
-		QObject ret = null;
+		QObject ret = QObject.Null;
 		if(t.getChildCount() == 0)
 			return ret;
 		return evalExpr(t.getChild(0));
@@ -206,7 +206,7 @@ public class QInterpreter {
 		}
 		// error handling, can I use exception in JS env?
 		_console.write("right value of func call is not function. After investigate exception, I'll handle.");
-		return null;
+		return QObject.Null;
 	}
 	
 	public final String ARGNAME = "__arg__";
@@ -291,7 +291,7 @@ public class QInterpreter {
 	}
 
 	private void assignToDefaultArgs(Tree subList, Environment funcEnv) {
-		QObject args = new QObject("list");
+		QObject args = QObject.createList();
 		int argNum = 0;
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
@@ -409,9 +409,8 @@ public class QInterpreter {
 				debugPrint("lvalue not symbol, throw");
 				throw new RuntimeException("lvalue of assign is not SYMBOL, NYI");
 			}
-			// TODO: I think we should clone here.
-			_curEnv.put(arg1.getText(), evalExpr(arg2));
-			return null;
+			_curEnv.put(arg1.getText(), evalExpr(arg2).QClone());
+			return QObject.Null;
 		}
 		QObject term1 = evalExpr(arg1);
 		QObject term2 = evalExpr(arg2);

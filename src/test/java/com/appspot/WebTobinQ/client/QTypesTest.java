@@ -88,6 +88,90 @@ public class QTypesTest {
 		assertEquals(r3, recycle.get(5));
 		assertEquals(r1, recycle.get(6));
 	}
+	
+	@Test
+	public void test_QClone_numeric() {
+		QObject expected = QObject.createNumeric(1);
+		QObject actual = QObject.createNumeric(1).QClone();
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_QClone_vector() {
+		QObject expected = createVector12("x");
+
+		QObject actual = createVector12("x").QClone();
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_QClone_vector_keepAttribute() {
+		QObject actual = createVector12("x").QClone();
+		assertEquals(QObject.createCharacter("x"), actual.getAttribute("names"));
+	}
+	
+	@Test
+	public void test_QClone_list() {
+		QObject l = createListOfX12();
+		QObject actual = l.QClone();
+		
+		assertEquals("list", actual.getMode());
+		assertEquals(1, actual.getLength());
+		assertEquals(createVector12("X"), actual.get(0));
+	}
+	
+	@Test
+	public void test_dataFrame() {
+		QObject df = QObject.createDataFrame();
+		assertEquals("list", df.getMode());
+		assertEquals("matrix", df.getQClass());
+	}
+	
+	@Test
+	public void test_dataFrameFromVector_names() {
+
+		QObject args = createListOfX12();
+		
+		QObject df = QObject.createDataFrameFromVector(args);
+		assertEquals(QObject.createCharacter("X"), df.getAttribute("names"));
+	}
+
+	@Test
+	public void test_dataFrameFromVector_rowNames() {
+
+		QObject args = createListOfX12();
+		
+		QObject df = QObject.createDataFrameFromVector(args);
+		assertEquals(QObject.createCharacter("1"), df.getAttribute("row.names").get(0));
+		assertEquals(QObject.createCharacter("2"), df.getAttribute("row.names").get(1));
+	}
+	
+	@Test
+	public void test_dataFrameFromVector_contents_row1() {
+		QObject args = QObject.createList();
+		QObject x = createVector12("x");		
+		QObject y = createVector12("y");		
+		args.set(0, x);
+		args.set(1, y);
+		QObject df = QObject.createDataFrameFromVector(args);
+		
+		assertEquals(y, df.get(1));
+		
+	}
+	
+	private QObject createListOfX12() {
+		QObject args = QObject.createList();
+		QObject x = createVector12("X");		
+		args.set(0, x);
+		return args;
+	}
+
+	private QObject createVector12(String name) {
+		QObject x = QObject.createNumeric(1);
+		x.set(1, QObject.createNumeric(2));
+		x.setAttribute("names", QObject.createCharacter(name));
+		return x;
+	}
 
 	// --------- other misc test -------------
 	@Test

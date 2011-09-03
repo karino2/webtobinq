@@ -154,10 +154,11 @@ public class QInterpreterTest {
 	}
 	
 	@Test
-	public void test_eval_subscript_logical()
+	public void test_eval_subscript_logical() throws RecognitionException
 	{
 		QObject expected = createNumeric(2);
-		QObject actual = _intp.eval("(1:3)[c(FALSE, TRUE, FALSE)]");
+		CommonTree tree = parseExpression("(1:3)[c(FALSE, TRUE, FALSE)]");
+		QObject actual = _intp.evalExpr(tree);
 		assertNumericEquals(expected, actual);
 	}
 	
