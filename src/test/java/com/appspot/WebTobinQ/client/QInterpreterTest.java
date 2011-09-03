@@ -241,7 +241,7 @@ public class QInterpreterTest {
 		assertNull(_intp._curEnv.get("x"));
 
 		QObject ret = _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
-		assertNull(ret);
+		assertEquals(QObject.Null, ret);
 		
 		assertNumericEquals(createNumeric(3), _intp._curEnv.get("x"));
 	}
@@ -255,7 +255,7 @@ public class QInterpreterTest {
 		assertNull(_intp._curEnv.get("x"));
 
 		QObject ret = _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
-		assertNull(ret);
+		assertEquals(QObject.Null, ret);
 		
 		assertNumericEquals(createNumeric(3), _intp._curEnv.get("x"));
 	}

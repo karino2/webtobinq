@@ -214,8 +214,11 @@ public class QObject {
 	
 	public QObject get(int i)
 	{
+		// atom
+		if(getMode() != "list" && i == 0 && getLength() == 1)
+			return this;
 		if(_vector == null)
-			return QObject.Null;
+			return QObject.NA;
 		return _vector.get(i);
 	}
 
