@@ -124,10 +124,10 @@ public class QTypesTest {
 	
 	@Test
 	public void test_dataFrame() {
-		QObject df = QObject.createDataFrame();
+		QObject df = QList.createDataFrame();
 		assertEquals("list", df.getMode());
 		assertEquals("data.frame", df.getQClass());
-		assertEquals(true, df.isDataFrame());
+		assertEquals(true, ((QList)df).isDataFrame());
 	}
 	
 	@Test
@@ -135,7 +135,7 @@ public class QTypesTest {
 
 		QObject args = createListOfX12();
 		
-		QObject df = QObject.createDataFrameFromVector(args);
+		QObject df = QList.createDataFrameFromVector(args);
 		assertEquals(QObject.createCharacter("X"), df.getAttribute("names"));
 	}
 
@@ -144,33 +144,31 @@ public class QTypesTest {
 
 		QObject args = createListOfX12();
 		
-		QObject df = QObject.createDataFrameFromVector(args);
+		QObject df = QList.createDataFrameFromVector(args);
 		assertEquals(QObject.createCharacter("1"), df.getAttribute("row.names").get(0));
 		assertEquals(QObject.createCharacter("2"), df.getAttribute("row.names").get(1));
 	}
 	
 	@Test
 	public void test_dataFrameFromVector_contents_row1() {
-		QObject args = QObject.createList();
-		QObject x = createVector12("x");		
-		QObject y = createVector12("y");		
+		QObject args = QList.createList();
+		QObject x = createVector12("x");
+		QObject y = createVector12("y");
 		args.set(0, x);
 		args.set(1, y);
-		QObject df = QObject.createDataFrameFromVector(args);
+		QObject df = QList.createDataFrameFromVector(args);
 		
 		assertEquals(y, df.get(1));
-		
-		// System.out.println(df.toString());
 	}
 	
 	@Test
 	public void test_dataFrameFromVector_toString() {
-		QObject args = QObject.createList();
+		QObject args = QList.createList();
 		QObject x = createVector12("x");		
 		QObject y = createVector12("y");		
 		args.set(0, x);
 		args.set(1, y);
-		QObject df = QObject.createDataFrameFromVector(args);
+		QObject df = QList.createDataFrameFromVector(args);
 		
 		assertEquals("  x   y  \n1 1.0 1.0\n2 2.0 2.0\n", df.toString());
 	}
@@ -179,14 +177,14 @@ public class QTypesTest {
 	public void test_dataFrameFromVector_contents_row1Class() {
 		QObject args = createListOfX12();
 		
-		QObject df = QObject.createDataFrameFromVector(args);
+		QObject df = QList.createDataFrameFromVector(args);
 		
 		assertEquals("list", df.get(0).getMode());
 		assertEquals("data.frame", df.get(0).getQClass());
 		
 	}
 	private QObject createListOfX12() {
-		QObject args = QObject.createList();
+		QObject args = QList.createList();
 		QObject x = createVector12("X");		
 		args.set(0, x);
 		return args;

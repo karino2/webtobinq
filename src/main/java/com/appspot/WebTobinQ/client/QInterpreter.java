@@ -291,7 +291,7 @@ public class QInterpreter {
 	}
 
 	private void assignToDefaultArgs(Tree subList, Environment funcEnv) {
-		QObject args = QObject.createList();
+		QObject args = new QList();
 		int argNum = 0;
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{

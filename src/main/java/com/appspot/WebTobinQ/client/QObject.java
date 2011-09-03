@@ -59,64 +59,8 @@ public class QObject {
 		return new QObject(CHARACTER_TYPE, val);
 	}
 	
-	// args must be list of vector.
-	public static QObject createDataFrameFromVector(QObject args)
-	{
-		QObject ret = createDataFrame();
-		
-		QObject rowNames = rowNames(args);
-		ret.setAttribute("row.names", rowNames);		
-		
-		QObjectBuilder nameBldr = new QObjectBuilder();
-		for(int i = 0; i < args.getLength(); i++)
-		{
-			QObject o = args.get(i);
-			QObject df = copyAsDataFrame(o);
-			ret.set(i, df);
-
-			QObject name = null;
-			if(QObject.Null.equals(o.getAttribute("names")))
-				name = QObject.createCharacter("V" + (i+1));
-			else
-				name = o.getAttribute("names");
-
-			nameBldr.add(name);
-			df.setAttribute("names", name);
-			df.setAttribute("row.names", rowNames);
-		}
-		ret.setAttribute("names", nameBldr.result());
-		return ret;
-	}
-
-	private static QObject rowNames(QObject args) {
-		QObjectBuilder rowBuilder = new QObjectBuilder();
-		QObject o2 = args.get(0);
-		for(int j = 0; j < o2.getLength(); j++)
-		{
-			rowBuilder.add(QObject.createCharacter(String.valueOf(j+1)));
-		}
-		QObject rowNames = rowBuilder.result();
-		return rowNames;
-	}
-	
-	private static QObject copyAsDataFrame(QObject o) {
-		QObject df = QObject.createDataFrame();
-		for(int i = 0; i < o.getLength(); i++)
-			df.set(i, o.get(i).QClone());
-		return df;
-	}
-
 	public QObject QClone() {
-		if(getMode() == "list")
-		{
-			QObject ret = new QObject(getMode(), _val, _attributes);
-			for(int i = 0; i < getLength(); i++)
-			{
-				ret.set(i, get(i).QClone());
-			}
-			return ret;
-		}
-		else  if(getLength() == 1){
+		if(getLength() == 1){
 			return new QObject(getMode(), _val, _attributes);
 		}
 		else
@@ -132,13 +76,6 @@ public class QObject {
 		}
 	}
 
-	public static QObject createDataFrame()
-	{
-		QObject df = new QObject("list");
-		df.setAttribute("class", createCharacter("data.frame"));
-		return df;
-	}
-	
 	public String getMode()
 	{
 		return _mode;
@@ -184,11 +121,6 @@ public class QObject {
 			else
 				return "FALSE";
 		}
-		else if(obj.getMode() == "list")
-		{
-			// not R compatible.  
-			return "list: " + obj.toString();
-		}
 		else
 		{
 			if(obj.getMode() == "NULL")
@@ -196,16 +128,9 @@ public class QObject {
 			return obj._val.toString();
 		}
 	}
-	
-	public boolean isDataFrame()
-	{
-		return getMode() == "list" && getQClass() == "data.frame";
-	}
-	
+		
 	public String toString()
 	{
-		if(isDataFrame())
-			return toStringDataFrame();
 		if(_vector == null)
 			return toStringOne(this);
 		StringBuffer buf = new StringBuffer();
@@ -218,61 +143,6 @@ public class QObject {
 		return buf.toString();
 	}
 	
-	// slow...
-	private String toStringDataFrame() {
-		QObject rowNames = getAttribute("row.names");
-		QObject names = getAttribute("names");
-		
-		ArrayList<Integer> colMaxLength = new ArrayList<Integer>();
-		colMaxLength.add(0,maxStrLength(rowNames));
-		StringBuffer buf = new StringBuffer();
-	
-		// print header
-		appendSpace(buf, colMaxLength.get(0));
-		for(int i = 0; i < names.getLength(); i++)
-		{
-			buf.append(" ");
-			
-			QObject name = names.get(i);
-			int nameLen = name.toString().length();
-			colMaxLength.add(i+1, Math.max(nameLen, maxStrLength(get(i))));
-			buf.append(name.toString());
-			appendSpace(buf, colMaxLength.get(i+1) - nameLen);
-		}
-		buf.append("\n");
-		
-		QObject firstList = get(0);
-		for(int i = 0; i < firstList.getLength(); i++)
-		{
-			String rowName = rowNames.get(i).toString();
-			buf.append(rowName);
-			appendSpace(buf, colMaxLength.get(0) - rowName.length());
-			for(int j = 0; j < getLength(); j++) {
-				buf.append(" ");
-				String val = get(j).get(i).toString();
-				buf.append(val);
-				appendSpace(buf, colMaxLength.get(i+1) - val.length());
-			}
-			buf.append("\n");
-		}
-		return buf.toString();
-	}
-
-	private void appendSpace(StringBuffer buf, int maxRowLength) {
-		for(int i = 0; i < maxRowLength; i++)
-			buf.append(" ");
-	}
-
-	private int maxStrLength(QObject rowNames) {
-		int max = 0;
-		for(int i = 0; i < rowNames.getLength(); i++)
-		{
-			int l = rowNames.get(i).toString().length();
-			if(max < l)
-				max = l;
-		}
-		return max;
-	}
 
 	public int getLength()
 	{
@@ -300,7 +170,7 @@ public class QObject {
 	public QObject get(int i)
 	{
 		// atom
-		if(getMode() != "list" && i == 0 && getLength() == 1)
+		if(i == 0 && getLength() == 1)
 			return this;
 		if(_vector == null)
 			return QObject.NA;
@@ -308,13 +178,7 @@ public class QObject {
 	}
 
 	public void set(int i, QObject qObject) {
-		ensureVector();
-		if(getMode() == "list")
-		{
-			setToList(i, qObject.QClone());
-			return;
-		}
-		
+		ensureVector();		
 		if(getLength() < i+1)
 		{
 			extendVectorAndFillNA(i+1);
@@ -326,12 +190,6 @@ public class QObject {
 		}
 		else
 			_vector.set(i, qObject.QClone());		
-	}
-
-	private void setToList(int i, QObject qObject) {
-		if(getLength() < i+1)
-			extendVectorAndFillValue(i+1, QObject.Null);
-		_vector.set(i, qObject);
 	}
 
 	public void extendVectorAndFillNA(int upto) {
@@ -351,8 +209,6 @@ public class QObject {
 		if(_vector == null)
 		{
 			_vector = new ArrayList<QObject>();
-			if(getMode() == "list")
-				return;
 			// Here, _vector.sie() == 0 but _val != 0 the case. QClone doesn't work.
 			_vector.add(0, shallowClone()); 		
 		}
@@ -410,9 +266,5 @@ public class QObject {
 		if(b)
 			return TRUE.QClone();
 		return FALSE.QClone();
-	}
-
-	public static QObject createList() {
-		return new QObject("list");
 	}
 }
