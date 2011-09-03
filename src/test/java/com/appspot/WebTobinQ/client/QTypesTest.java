@@ -150,12 +150,25 @@ public class QTypesTest {
 	}
 	
 	@Test
+	public void test_list_toString()
+	{
+		QObject args = QList.createList();
+		QObject x = createVector12("x");
+		QObject y = createVector12("y");
+		args.set(0, x);
+		args.set(1, y);		
+		
+		assertEquals("[[1]]\n[1] 1.0 2.0\n\n[[2]]\n[1] 1.0 2.0\n\n", args.toString());
+		
+	}
+	
+	@Test
 	public void test_dataFrameFromVector_contents_row1() {
 		QObject args = QList.createList();
 		QObject x = createVector12("x");
 		QObject y = createVector12("y");
 		args.set(0, x);
-		args.set(1, y);
+		args.set(1, y);		
 		QObject df = QList.createDataFrameFromVector(args);
 		
 		assertEquals(y, df.get(1));

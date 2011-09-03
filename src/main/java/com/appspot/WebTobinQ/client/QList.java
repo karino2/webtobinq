@@ -34,6 +34,33 @@ public class QList extends QObject {
 		}
 		return ret;
 	}
+	
+	public static QObject createList() {
+		return new QList();
+	}
+
+	public String toString()
+	{
+		if(isDataFrame())
+			return toStringDataFrame();
+		
+		return toStringList();
+	}
+	
+	private String toStringList() {
+		// nest of list does not handle properly.
+		StringBuffer buf = new StringBuffer();
+		for(int i = 0; i < getLength(); i++)
+		{
+			buf.append("[[" + (i+1) + "]]\n");
+			buf.append("[1] ");
+			buf.append(get(i).toString());
+			buf.append("\n\n");
+		}
+		return buf.toString();
+	}
+	
+	// -- begin data frame dependent.
 	public static QObject createDataFrame()
 	{
 		QList df = new QList();
@@ -46,21 +73,7 @@ public class QList extends QObject {
 		return getQClass() == "data.frame";
 	}
 	
-	public String toString()
-	{
-		if(isDataFrame())
-			return toStringDataFrame();
-		
-		// nest of list does not handle properly.
-		StringBuffer buf = new StringBuffer();
-		for(int i = 0; i < getLength(); i++)
-		{
-			buf.append("[[" + i + "]]\n");
-			buf.append("[1] ");
-			buf.append(get(i).toString());
-		}
-		return buf.toString();
-	}
+	
 	// slow...
 	private String toStringDataFrame() {
 		QObject rowNames = getAttribute("row.names");
@@ -116,12 +129,14 @@ public class QList extends QObject {
 		}
 		return max;
 	}
+	
 	protected static QObject copyAsDataFrame(QObject o) {
 		QObject df = createDataFrame();
 		for(int i = 0; i < o.getLength(); i++)
 			df.set(i, o.get(i).QClone());
 		return df;
 	}
+	
 	protected static QObject rowNames(QObject args) {
 		QObjectBuilder rowBuilder = new QObjectBuilder();
 		QObject o2 = args.get(0);
@@ -132,12 +147,13 @@ public class QList extends QObject {
 		QObject rowNames = rowBuilder.result();
 		return rowNames;
 	}
+	
 	// args must be list of vector.
 	public static QObject createDataFrameFromVector(QObject args)
 	{
 		QObject ret = createDataFrame();
 		
-		QObject rowNames = QList.rowNames(args);
+		QObject rowNames = rowNames(args);
 		ret.setAttribute("row.names", rowNames);		
 		
 		QObjectBuilder nameBldr = new QObjectBuilder();
@@ -159,8 +175,5 @@ public class QList extends QObject {
 		}
 		ret.setAttribute("names", nameBldr.result());
 		return ret;
-	}
-	public static QObject createList() {
-		return new QList();
 	}
 }
