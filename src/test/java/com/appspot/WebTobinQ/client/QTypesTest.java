@@ -89,4 +89,58 @@ public class QTypesTest {
 		assertEquals(r1, recycle.get(6));
 	}
 
+	// --------- other misc test -------------
+	@Test
+	public void test_getCurrentLine_onlyOneLine_center()
+	{
+		String codes = "abc";
+		int pos = 1;
+		String actual = WebTobinQ.getCurrentLine(pos, codes);
+		
+		assertEquals(codes, actual);
+	}
+	
+	@Test
+	public void test_getCurrentLine_onlyOneLine_beg()
+	{
+		String codes = "abc";
+		int pos = 0;
+		String actual = WebTobinQ.getCurrentLine(pos, codes);
+		
+		assertEquals(codes, actual);
+	}
+	
+	@Test
+	public void test_getCurrentLine_onlyOneLine_end()
+	{
+		String codes = "abc";
+		int pos = 3;
+		String actual = WebTobinQ.getCurrentLine(pos, codes);
+		
+		assertEquals(codes, actual);
+	}
+	
+	@Test
+	public void test_getCurrentLine_threeLine_secondBegin()
+	{
+		String expected = "bc";
+		
+		String codes = "a\nbc\nde";
+		int pos = 2;
+		String actual = WebTobinQ.getCurrentLine(pos, codes);
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_getCurrentLine_threeLine_secondEnd()
+	{
+		String expected = "bc";
+		
+		String codes = "a\nbc\nde";
+		int pos = 4;
+		String actual = WebTobinQ.getCurrentLine(pos, codes);
+		
+		assertEquals(expected, actual);
+	}
 }

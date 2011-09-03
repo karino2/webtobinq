@@ -154,7 +154,7 @@ public class QFunction extends QObject {
 				GChart chart = _plotable.getChart();
 				chart.addCurve();
 				GChart.Curve curve = chart.getCurve();
-				intp.debugPrint("curveIndex="+chart.getCurveIndex(curve));
+		        curve.getSymbol().setSymbolType(GChart.SymbolType.LINE);
 			    addPoints(x, y, curve);
 				
 			    _plotable.showChart();

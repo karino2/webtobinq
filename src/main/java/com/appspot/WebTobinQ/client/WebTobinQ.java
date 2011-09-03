@@ -3,6 +3,10 @@ package com.appspot.WebTobinQ.client;
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
+import com.google.gwt.event.dom.client.KeyDownEvent;
+import com.google.gwt.event.dom.client.KeyDownHandler;
+import com.google.gwt.event.dom.client.KeyUpEvent;
+import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.DialogBox;
 import com.google.gwt.user.client.ui.RootPanel;
@@ -69,69 +73,41 @@ public class WebTobinQ implements EntryPoint, Plotable {
     public void onModuleLoad() {
 	  final TextArea inputArea = new TextArea();
 	  final TextArea consoleArea = new TextArea();
-	  inputArea.setSize("800px", "150px");
-	  consoleArea.setSize("800px", "150px");
+	  inputArea.setSize("800px", "200px");
+	  consoleArea.setSize("800px", "300px");
+	  
 
 	  _console = new TextAreaConsole(consoleArea);
 	  final QInterpreter interpreter = new QInterpreter(_console, this);
 
+	  // use keyup because some eval (like plot) loose focus and fail to invoke default event.
+	  inputArea.addKeyUpHandler(new KeyUpHandler(){
+		  final int ENTER = 13;
+
+			public void onKeyUp(KeyUpEvent event) {
+				// Chrome assign C-j as downloads!
+				// if(event.isControlKeyDown() && event.getNativeKeyCode() == 'J')
+				if(event.getNativeKeyCode() == ENTER)
+				{
+					int pos = inputArea.getCursorPos();
+					String codes = inputArea.getText();
+					String currentLine = getCurrentLine(pos-1, codes);
+					eval(interpreter, currentLine);
+				}				
+			}
+		  
+		  });
+
       final Button evalButton = new Button("Eval All", new ClickHandler(){
 		public void onClick(ClickEvent event) {
-			try{
-				interpreter.eval(inputArea.getText());
-			}
-			catch(RuntimeException e)
-			{
-				interpreter.println("error: " + e.toString());
-				e.printStackTrace();
-			}
-		}});
+			String codes = inputArea.getText();
+			eval(interpreter, codes);
+		}
+		});
       final Button clearButton = new Button("Clear Console", new ClickHandler(){
 
 		public void onClick(ClickEvent event) {
-			_console.clear();
-			// tmp. chart test code.
-		    // begin GChart test
-			/*
-			 * 
-		    GChart chart = new GChart();
-		    chart.setChartTitle("<b>x<sup>2</sup> vs x</b>");
-		    chart.setChartSize(150, 150);
-		    chart.addCurve();
-		    for (int i = 0; i < 10; i++) 
-		    	chart.getCurve().addPoint(i,i*i);
-		    chart.getCurve().setLegendLabel("x<sup>2</sup>");
-		    chart.getXAxis().setAxisLabel("x");
-		    chart.getYAxis().setAxisLabel("x<sup>2</sup>");
-			
-			
-		    // Create the popup dialog box
-			if(_dialogBox == null)
-				_dialogBox = new DialogBox();
-		    _dialogBox.setText("Chart");
-		    _dialogBox.setAnimationEnabled(true);
-		    final Button closeButton = new Button("Close");
-		    // We can set the id of a widget by accessing its Element
-		    closeButton.getElement().setId("closeButton");
-		    VerticalPanel dialogVPanel = new VerticalPanel();
-		    dialogVPanel.add(chart);
-		    dialogVPanel.addStyleName("dialogVPanel");
-		    dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_RIGHT);
-		    dialogVPanel.add(closeButton);
-		    _dialogBox.setWidget(dialogVPanel);
-		    chart.update();
-	        _dialogBox.show();
-
-		    // Add a handler to close the DialogBox
-		    closeButton.addClickHandler(new ClickHandler() {
-		      public void onClick(ClickEvent event) {
-		        _dialogBox.hide();
-		      }
-		    });
-		    */
-			
-			//
-			
+			_console.clear();			
 		}});
 
     evalButton.addStyleName("evalButton");
@@ -148,4 +124,28 @@ public class WebTobinQ implements EntryPoint, Plotable {
 
   
   }
+  public static void eval(final QInterpreter interpreter, String codes) {
+	try{		
+		interpreter.eval(codes);
+	}
+	catch(RuntimeException e)
+	{
+		interpreter.println("error: " + e.toString());
+		e.printStackTrace();
+	}
+  }
+	public static String getCurrentLine(int pos, String codes) {
+		int end = codes.indexOf("\n", pos);
+		if (end == -1)
+			end = codes.length();
+		int reverseSearchOrigin = pos-1;
+		if(reverseSearchOrigin == -1)
+			reverseSearchOrigin = 0;
+		int beg = codes.lastIndexOf("\n", reverseSearchOrigin);
+		if (beg == -1)
+			beg = 0;
+		else
+			beg += 1;
+		return codes.substring(beg, end);
+	}
 }
