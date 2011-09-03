@@ -3,6 +3,8 @@ package com.appspot.WebTobinQ.client;
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
 
+import javax.validation.constraints.AssertTrue;
+
 import org.junit.Test;
 
 
@@ -124,7 +126,8 @@ public class QTypesTest {
 	public void test_dataFrame() {
 		QObject df = QObject.createDataFrame();
 		assertEquals("list", df.getMode());
-		assertEquals("matrix", df.getQClass());
+		assertEquals("data.frame", df.getQClass());
+		assertEquals(true, df.isDataFrame());
 	}
 	
 	@Test
@@ -157,8 +160,31 @@ public class QTypesTest {
 		
 		assertEquals(y, df.get(1));
 		
+		// System.out.println(df.toString());
 	}
 	
+	@Test
+	public void test_dataFrameFromVector_toString() {
+		QObject args = QObject.createList();
+		QObject x = createVector12("x");		
+		QObject y = createVector12("y");		
+		args.set(0, x);
+		args.set(1, y);
+		QObject df = QObject.createDataFrameFromVector(args);
+		
+		assertEquals("  x   y  \n1 1.0 1.0\n2 2.0 2.0\n", df.toString());
+	}
+	
+	@Test
+	public void test_dataFrameFromVector_contents_row1Class() {
+		QObject args = createListOfX12();
+		
+		QObject df = QObject.createDataFrameFromVector(args);
+		
+		assertEquals("list", df.get(0).getMode());
+		assertEquals("data.frame", df.get(0).getQClass());
+		
+	}
 	private QObject createListOfX12() {
 		QObject args = QObject.createList();
 		QObject x = createVector12("X");		
