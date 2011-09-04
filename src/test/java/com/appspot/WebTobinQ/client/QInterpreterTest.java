@@ -52,6 +52,25 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_dataFrame_subscriptBB() throws RecognitionException
+	{
+		// setup
+		callEvalExpr("x<-1:3");
+		callEvalExpr("y<-4:6");
+		callEvalExpr("df<-data.frame(x, y)");
+
+		QObject actual = callSubscriptBB("df[[\"y\"]]");
+
+		assertEquals(3, actual.getLength());
+		assertEquals(createNumeric(4), actual.get(0));
+	}
+	
+	private QObject callSubscriptBB(String code) throws RecognitionException {
+		Tree tree = parseExpression(code);
+		return _intp.evalSubscriptBB(tree);
+	}
+
+	@Test
 	public void test_evalLE_oneLe_true()
 	{
 		QObject expected = createLogical(true);

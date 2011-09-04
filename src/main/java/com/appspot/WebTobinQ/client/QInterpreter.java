@@ -122,6 +122,9 @@ public class QInterpreter {
 				throw new RuntimeException("child num of XXPAREN is not 1. Which case?");
 			return evalExpr(term.getChild(0));
 		}
+		// TODO: handle literal more seriously.
+		if(term.getType() == QParser.STR_CONST)
+			return QObject.createCharacter(term.getText().substring(1, term.getText().length()-1));
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
 	}
@@ -130,8 +133,20 @@ public class QInterpreter {
 	// or (XXSUBSCRIPT LBB lexpr sublist)
 	QObject evalSubscript(Tree term) {
 		if(term.getChild(0).getType() == QParser.LBB)
-			return evalExpr(term.getChild(1)).getBB(evalExpr(term.getChild(2)));
+			return evalSubscriptBB(term);
 		return evalSubscriptBracket(term);
+	}
+	
+	// (XXSUBSCRIPT [[ df (XXSUBLIST (XXSUB1 "x")))
+	QObject evalSubscriptBB(Tree term) {
+		QObject lexpr = evalExpr(term.getChild(1));
+		Tree sublistTree = term.getChild(2);
+		if(sublistTree.getChildCount() > 1)
+			throw new RuntimeException("[[]] with multi dimentional, what's happend?");
+		if(sublistTree.getChild(0).getType() != QParser.XXSUB1)
+			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
+		QObject index = evalExpr(sublistTree.getChild(0).getChild(0));
+		return lexpr.getBB(index);
 	}
 
 	private QObject evalSubscriptBracket(Tree term) {
