@@ -28,19 +28,19 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus()
 	{
-		QObject expected = QObject.createNumeric(5);
+		int expected = 5;
 
 		QObject actual = _intp.eval("2+3");
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
 	public void test_eval_paren()
 	{
-		QObject expected = QObject.createNumeric(3);
+		int expected = 3;
 		
 		QObject actual = _intp.eval("(4+8)/4");
-		assertNumericEquals(expected, actual);		
+		assertQNumericEquals(expected, actual);		
 	}
 	
 	@Test
@@ -49,6 +49,39 @@ public class QInterpreterTest {
 		String expected = "  x   y  \n1 1.0 1.0\n2 2.0 2.0\n3 3.0 3.0\n";
 		QObject df = _intp.eval("x<-1:3;y<-1:3;data.frame(x, y)");
 		assertEquals(expected, df.toString());
+	}
+	
+	public static void assertQCharEquals(String expected, QObject actual)
+	{
+		assertEquals(QObject.createCharacter(expected), actual);
+	}
+	
+	@Test
+	public void test_evalExpr_dataFrame_subscript() throws RecognitionException
+	{
+		// setup
+		callEvalExpr("x<-1:3");
+		callEvalExpr("y<-4:6");
+		callEvalExpr("df<-data.frame(x, y)");
+
+		QObject actual = callSubscript("df[1]");
+		
+		assertEquals("data.frame", actual.getQClass());
+		assertQCharEquals("x", actual.getAttribute("names"));
+		assertQCharEquals("1", actual.getAttribute("row.names").get(0));
+		assertEquals(1, actual.getLength());
+		
+		assertNotNull(actual.toString());
+	}
+
+	private QObject callSubscript(String code) throws RecognitionException {
+		Tree tree = parseExpression(code);
+		return _intp.evalSubscript(tree);
+	}
+
+	public static void assertQNumericEquals(int expected, QObject actual)
+	{
+		assertEquals(createNumeric(expected), actual);
 	}
 	
 	@Test
@@ -62,7 +95,9 @@ public class QInterpreterTest {
 		QObject actual = callSubscriptBB("df[[\"y\"]]");
 
 		assertEquals(3, actual.getLength());
-		assertEquals(createNumeric(4), actual.get(0));
+		assertQNumericEquals(4, actual.get(0));
+		assertNotNull(actual.toString());
+		// assertEquals("numeric", actual.getMode());
 	}
 	
 	private QObject callSubscriptBB(String code) throws RecognitionException {
@@ -118,13 +153,13 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalExpr_int()
 	{
-		QObject expected = QObject.createNumeric(3);
+		int expected = 3;
 
 		QInterpreter intp = createInterpreter();
 		CommonTree arg = createIntTree("3");
 		
 		QObject actual = intp.evalExpr(arg);
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
@@ -142,18 +177,17 @@ public class QInterpreterTest {
 	@Test
 	public void test_evalExpr_XXBINARY()
 	{
-		QObject expected = QObject.createNumeric(3);
+		int expected = 3;
 		
-		QInterpreter intp = createInterpreter();
 		CommonTree parent = createTree(QParser.XXBINARY, "");
 		// "+" is not STR_CONST, but do this for the times being.
 		parent.addChild(createTree(QParser.STR_CONST, "+"));
 		parent.addChild(createIntTree("1"));
 		parent.addChild(createIntTree("2"));
 		
-		QObject actual = intp.evalExpr(parent);
+		QObject actual = _intp.evalExpr(parent);
 		
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	
@@ -175,26 +209,26 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_subscript_logical() throws RecognitionException
 	{
-		QObject expected = createNumeric(2);
+		int expected = 2;
 		CommonTree tree = parseExpression("(1:3)[c(FALSE, TRUE, FALSE)]");
 		QObject actual = _intp.evalExpr(tree);
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
 	public void test_eval_subscript_logical_firstElement()
 	{
-		QObject expected = createNumeric(1);
+		int expected = 1;
 		QObject actual = _intp.eval("(1:3)[c(TRUE, FALSE, FALSE)]");
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
 	public void test_eval_mean()
 	{
-		QObject expected = createNumeric(2);
+		int expected = 2;
 		QObject actual = _intp.eval("mean(1:3)");
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	@Test
 	public void test_eval_sqrt_vector()
@@ -217,9 +251,9 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_var()
 	{
-		QObject expected = createNumeric(1);
+		int expected = 1;
 		QObject actual = _intp.eval("var(1:3)");
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
@@ -244,8 +278,8 @@ public class QInterpreterTest {
 		QObject actual = callEvalExpr("a[1:2]");
 
 		assertEquals(2, actual.getLength());
-		assertNumericEquals(createNumeric(1), actual.get(0));
-		assertNumericEquals(createNumeric(2), actual.get(1));
+		assertQNumericEquals(1, actual.get(0));
+		assertQNumericEquals(2, actual.get(1));
 	}
 
 	private QObject callEvalExpr(String code) throws RecognitionException {
@@ -276,19 +310,18 @@ public class QInterpreterTest {
 	@Test
 	public void test_eval_plus_2statements()
 	{
-		QObject expected = QObject.createNumeric(9);
+		int expected = 9;
 		QInterpreter intp = createInterpreter();
 		QObject actual = intp.eval("2+3\n4+5");
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
 	public void test_eval_plus_3terms()
 	{
-		QObject expected = QObject.createNumeric(6);
-		QInterpreter intp = createInterpreter();
-		QObject actual = intp.eval("1+2+3");
-		assertNumericEquals(expected, actual);
+		int expected = 6;
+		QObject actual = _intp.eval("1+2+3");
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
@@ -301,7 +334,7 @@ public class QInterpreterTest {
 		QObject ret = _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
 		assertEquals(QObject.Null, ret);
 		
-		assertNumericEquals(createNumeric(3), _intp._curEnv.get("x"));
+		assertQNumericEquals(3, _intp._curEnv.get("x"));
 	}
 	
 	@Test
@@ -315,15 +348,15 @@ public class QInterpreterTest {
 		QObject ret = _intp.evalBinary(t.getChild(0), t.getChild(1), t.getChild(2));
 		assertEquals(QObject.Null, ret);
 		
-		assertNumericEquals(createNumeric(3), _intp._curEnv.get("x"));
+		assertQNumericEquals(3, _intp._curEnv.get("x"));
 	}
 	
 	@Test
 	public void test_evalBinary_plus() throws RecognitionException
 	{
-		QObject expected = QObject.createNumeric(5);
+		int expected = 5;
 		QObject actual = evalSimpleBinary("2+3");
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	@Test
@@ -332,21 +365,21 @@ public class QInterpreterTest {
 		QObject actual = evalSimpleBinary("3:5");
 
 		assertEquals(3, actual.getLength());
-		assertNumericEquals(createNumeric(3), actual.get(0));
-		assertNumericEquals(createNumeric(4), actual.get(1));
-		assertNumericEquals(createNumeric(5), actual.get(2));
+		assertQNumericEquals(3, actual.get(0));
+		assertQNumericEquals(4, actual.get(1));
+		assertQNumericEquals(5, actual.get(2));
 		
 	}
 	
 	@Test
 	public void test_evalPlus_normal()
 	{
-		QObject expected = QObject.createNumeric(3);
+		int expected = 3;
 		
 		QObject arg1 = QObject.createInt(1);
 		QObject arg2 = QObject.createInt(2);
 		QObject actual = _intp.evalPlus(arg1, arg2);
-		assertNumericEquals(expected, actual);
+		assertQNumericEquals(expected, actual);
 	}
 	
 	public static QObject createInt(int i){ return QObject.createInt(i); }
@@ -362,11 +395,11 @@ public class QInterpreterTest {
 		QObject actual = _intp.evalPlus(vector, r3);
 		
 		assertEquals(2, actual.getLength());
-		assertNumericEquals(createNumeric(4), actual.get(0));
-		assertNumericEquals(createNumeric(5), actual.get(1));
+		assertQNumericEquals(4, actual.get(0));
+		assertQNumericEquals(5, actual.get(1));
 	}
 		
-	private QObject createNumeric(int i) {
+	private static QObject createNumeric(int i) {
 		return QObject.createNumeric(i);
 	}
 
@@ -381,8 +414,8 @@ public class QInterpreterTest {
 		QObject actual = _intp.evalPlus(r3, vector);
 		
 		assertEquals(2, actual.getLength());
-		assertNumericEquals(createNumeric(4), actual.get(0));
-		assertNumericEquals(createNumeric(5), actual.get(1));
+		assertQNumericEquals(4, actual.get(0));
+		assertQNumericEquals(5, actual.get(1));
 	}
 	
 	@Test
@@ -431,14 +464,14 @@ public class QInterpreterTest {
 		
 		assertEquals("list", actual.getMode());
 		assertEquals(1, actual.getLength());
-		assertNumericEquals(QObject.createNumeric(1), actual.get(0));
+		assertQNumericEquals(1, actual.get(0));
 	}
 	
 	private void assertVector123(QObject ret) {
 		assertEquals(3, ret.getLength());
-		assertNumericEquals(QObject.createNumeric(1), ret.get(0));
-		assertNumericEquals(QObject.createNumeric(2), ret.get(1));
-		assertNumericEquals(QObject.createNumeric(3), ret.get(2));
+		assertQNumericEquals(1, ret.get(0));
+		assertQNumericEquals(2, ret.get(1));
+		assertQNumericEquals(3, ret.get(2));
 	}
 	
 	public final String ARGNAME = "__arg__";
@@ -467,8 +500,8 @@ public class QInterpreterTest {
 		
 		assertNotNull(beg);
 		assertNotNull(end);
-		assertNumericEquals(createNumeric(1), beg);
-		assertNumericEquals(createNumeric(10), end);
+		assertQNumericEquals(1, beg);
+		assertQNumericEquals(10, end);
 	}
 	
 

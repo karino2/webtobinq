@@ -20,15 +20,16 @@ public class QList extends QObject {
 		_vector.set(i, qObject.QClone());
 	}
 	
+	// getBB return the contents of row list. not row list itself.
 	public QObject getBB(QObject arg)
 	{
 		if(arg.isNumber())
-			return get(arg.getInt());
+			return get(arg.getInt()).get(0);
 		if(arg.getMode() != CHARACTER_TYPE)
 			throw new RuntimeException("Arg of [[]] neither number nor string: " + arg.getMode());
 		String colName = (String)arg.getValue();
 		int i = getIndex(colName);
-		return get(i);
+		return get(i).get(0);
 	}
 	
 	private int getIndex(String colName) {
@@ -113,21 +114,23 @@ public class QList extends QObject {
 			
 			QObject name = names.get(i);
 			int nameLen = name.toString().length();
-			colMaxLength.add(i+1, Math.max(nameLen, maxStrLength(get(i))));
+			colMaxLength.add(i+1, Math.max(nameLen, maxStrLength(get(i).get(0))));
 			buf.append(name.toString());
 			appendSpace(buf, colMaxLength.get(i+1) - nameLen);
 		}
 		buf.append("\n");
 		
 		QObject firstList = get(0);
-		for(int i = 0; i < firstList.getLength(); i++)
+		QObject firstVector = firstList.get(0);
+		for(int i = 0; i < firstVector.getLength(); i++)
 		{
 			String rowName = rowNames.get(i).toString();
 			buf.append(rowName);
 			appendSpace(buf, colMaxLength.get(0) - rowName.length());
 			for(int j = 0; j < getLength(); j++) {
 				buf.append(" ");
-				String val = get(j).get(i).toString();
+				QObject dfSub = get(j);
+				String val = dfSub.get(0).get(i).toString();
 				buf.append(val);
 				appendSpace(buf, colMaxLength.get(j+1) - val.length());
 			}
@@ -154,8 +157,10 @@ public class QList extends QObject {
 	
 	protected static QObject copyAsDataFrame(QObject o) {
 		QObject df = createDataFrame();
+		QObjectBuilder bldr = new QObjectBuilder();
 		for(int i = 0; i < o.getLength(); i++)
-			df.set(i, o.get(i).QClone());
+			bldr.add(o.get(i).QClone());
+		df.set(0, bldr.result());
 		return df;
 	}
 	
@@ -185,7 +190,6 @@ public class QList extends QObject {
 		{
 			QObject o = args.get(i);
 			QObject df = QList.copyAsDataFrame(o);
-			ret.set(i, df);
 	
 			QObject name = null;
 			if(QObject.Null.equals(o.getAttribute("names")))
@@ -196,6 +200,8 @@ public class QList extends QObject {
 			nameBldr.add(name);
 			df.setAttribute("names", name);
 			df.setAttribute("row.names", rowNames);
+			// inside set, df is copied. so you must call here.
+			ret.set(i, df);
 		}
 		ret.setAttribute("names", nameBldr.result());
 		return ret;
