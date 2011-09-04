@@ -167,6 +167,26 @@ public class QObject {
 		return ret;
 	}
 	
+	public boolean isNumber()
+	{
+		return getMode() == "numeric" || getMode() == "integer";
+	}
+	
+	public int getInt() {
+		if(getMode() == "integer")
+			return (Integer)getValue();
+		if(getMode() == "numeric")
+			return (int)(double)(Double)getValue();
+		throw new RuntimeException("unsupported mode for getInt: " + getMode());
+	}
+	
+	public QObject getBB(QObject arg)
+	{
+		if(arg.isNumber() && arg.getInt() == 0)
+			return this;
+		throw new RuntimeException("index of [[]] out of bound.");
+	}
+	
 	public QObject get(int i)
 	{
 		// atom

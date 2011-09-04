@@ -129,14 +129,6 @@ public class QInterpreterTest {
 		assertNumericEquals(expected, actual);
 	}
 	
-	@Test
-	public void test_getInt_numeric()
-	{
-		int expected = 3;		
-		int actual = _intp.getInt(createNumeric(3));
-		
-		assertEquals(expected, actual);
-	}
 	
 	@Test
 	public void test_evalExpr_subscript_one() throws RecognitionException

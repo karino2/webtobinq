@@ -2,8 +2,8 @@ package com.appspot.WebTobinQ.client;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
-
-import javax.validation.constraints.AssertTrue;
+import static com.appspot.WebTobinQ.client.QObject.createNumeric;
+import static com.appspot.WebTobinQ.client.QObject.createCharacter;
 
 import org.junit.Test;
 
@@ -163,6 +163,48 @@ public class QTypesTest {
 	}
 	
 	@Test
+	public void test_getInt_numeric()
+	{
+		int expected = 3;		
+		int actual = createNumeric(3).getInt();
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_list_getBB_numericAccess()
+	{
+		QList l = createListOfX12();
+		QObject xvector = l.getBB(createNumeric(0));
+		assertEquals(createVector12("X"), xvector);
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void test_list_getBB_notFoundArg()
+	{
+		QList l = createListOfX12();
+		l.getBB(createCharacter("notExist"));
+	}
+
+	
+	@Test
+	public void test_list_getBB_textAccess()
+	{
+		QObject args = QList.createList();
+		QObject x = createVector12("x");
+		QObject y = createVector12("y");
+		y.set(2, createNumeric(3)); // y == c(1, 2, 3)
+		args.set(0, x);
+		args.set(1, y);
+		QObject names = QObject.createCharacter("x");
+		names.set(1, QObject.createCharacter("y"));
+		args.setAttribute("names", names);
+		
+		QObject actual = args.getBB(createCharacter("y"));
+		assertEquals(y, actual);
+	}
+	
+	@Test
 	public void test_dataFrameFromVector_contents_row1() {
 		QObject args = QList.createList();
 		QObject x = createVector12("x");
@@ -187,6 +229,18 @@ public class QTypesTest {
 	}
 	
 	@Test
+	public void test_dataFrame_getBB() {
+		QObject args = QList.createList();
+		QObject x = createVector12("x");		
+		QObject y = createVector12("y");		
+		args.set(0, x);
+		args.set(1, y);
+		QObject df = QList.createDataFrameFromVector(args);
+		
+		assertEquals(y, df.getBB(createCharacter("y")));
+	}
+	
+	@Test
 	public void test_dataFrameFromVector_contents_row1Class() {
 		QObject args = createListOfX12();
 		
@@ -196,8 +250,8 @@ public class QTypesTest {
 		assertEquals("data.frame", df.get(0).getQClass());
 		
 	}
-	private QObject createListOfX12() {
-		QObject args = QList.createList();
+	private QList createListOfX12() {
+		QList args = QList.createList();
 		QObject x = createVector12("X");		
 		args.set(0, x);
 		return args;
@@ -208,6 +262,17 @@ public class QTypesTest {
 		x.set(1, QObject.createNumeric(2));
 		x.setAttribute("names", QObject.createCharacter(name));
 		return x;
+	}
+	
+	@Test(expected=RuntimeException.class)
+	public void test_dataFrame_validateArg_lengthMismatch() {
+		QObject x = createVector12("x");
+		x.set(2, createNumeric(3));
+		QObject y = createVector12("y");
+		QList args = new QList();
+		args.set(0, x);
+		args.set(1, y);
+		QList.validateArg(args);
 	}
 
 	// --------- other misc test -------------

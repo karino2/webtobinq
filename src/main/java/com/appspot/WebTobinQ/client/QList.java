@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class QList extends QObject {
+	public static final String LIST_TYPE = "list";
 
 	public QList() {
 		this(null);
 	}
 	public QList(HashMap<String, QObject> attrs) {
-		super("list", null, attrs);
+		super(LIST_TYPE, null, attrs);
 		_vector = new ArrayList<QObject>();
 	}
 	
@@ -19,6 +20,27 @@ public class QList extends QObject {
 		_vector.set(i, qObject.QClone());
 	}
 	
+	public QObject getBB(QObject arg)
+	{
+		if(arg.isNumber())
+			return get(arg.getInt());
+		if(arg.getMode() != CHARACTER_TYPE)
+			throw new RuntimeException("Arg of [[]] neither number nor string: " + arg.getMode());
+		String colName = (String)arg.getValue();
+		int i = getIndex(colName);
+		return get(i);
+	}
+	
+	private int getIndex(String colName) {
+		QObject names = getAttribute("names");
+		for(int i = 0; i < names.getLength(); i++)
+		{
+			QObject name = names.get(i);
+			if(name.getValue().equals(colName))
+				return i;
+		}
+		throw new RuntimeException("Arg of [[]] does not match to names: " + colName);
+	}
 	public QObject get(int i)
 	{
 		if(_vector.size() > i)
@@ -35,7 +57,7 @@ public class QList extends QObject {
 		return ret;
 	}
 	
-	public static QObject createList() {
+	public static QList createList() {
 		return new QList();
 	}
 
@@ -151,6 +173,8 @@ public class QList extends QObject {
 	// args must be list of vector.
 	public static QObject createDataFrameFromVector(QObject args)
 	{
+		validateArg(args);
+		
 		QObject ret = createDataFrame();
 		
 		QObject rowNames = rowNames(args);
@@ -175,5 +199,18 @@ public class QList extends QObject {
 		}
 		ret.setAttribute("names", nameBldr.result());
 		return ret;
+	}
+	
+	static void validateArg(QObject args) {
+		if(args.getMode() != LIST_TYPE)
+			throw new RuntimeException("data.frame arg is not list");
+		int len = args.get(0).getLength();
+		for(int i = 0; i < args.getLength(); i++)
+		{
+			if(args.get(i).getLength() != len)
+			{
+				throw new RuntimeException("data.frame arg length mismatch: 0's=" + len + ", " + i + "'s=" + args.get(i).getLength());
+			}
+		}
 	}
 }

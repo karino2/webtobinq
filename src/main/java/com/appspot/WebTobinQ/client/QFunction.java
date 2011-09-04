@@ -251,6 +251,17 @@ public class QFunction extends QObject {
 		};
 	}
 	
+	public static QFunction createDataFrame()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get(ARGNAME);
+				return QList.createDataFrameFromVector(arg);
+			}
+		};
+	}
 	public String toString()
 	{
 		return "function ...";

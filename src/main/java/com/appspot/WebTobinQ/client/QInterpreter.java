@@ -25,6 +25,7 @@ public class QInterpreter {
 		_curEnv.put("mean", QFunction.createMean());
 		_curEnv.put("var", QFunction.createVar());
 		_curEnv.put("sqrt", QFunction.createSqrt());
+		_curEnv.put("data.frame", QFunction.createDataFrame());
 	}
 	
 	public QInterpreter(Writable console) {
@@ -129,7 +130,11 @@ public class QInterpreter {
 	// or (XXSUBSCRIPT LBB lexpr sublist)
 	QObject evalSubscript(Tree term) {
 		if(term.getChild(0).getType() == QParser.LBB)
-			throw new RuntimeException("NYI of subscript [[]]");
+			return evalExpr(term.getChild(1)).getBB(evalExpr(term.getChild(2)));
+		return evalSubscriptBracket(term);
+	}
+
+	private QObject evalSubscriptBracket(Tree term) {
 		QObject lexpr = evalExpr(term.getChild(1));
 		Tree sublistTree = term.getChild(2);
 		if(sublistTree.getChildCount() > 1)
@@ -159,27 +164,19 @@ public class QInterpreter {
 	private QObject subscriptByNumber(QObject lexpr, QObject range) {
 		if(range.getLength () == 1)
 		{
-			int  index = getInt(range);
-			// should I clone?
+			int  index = range.getInt();
 			return lexpr.get(index-1);
 		}
 		QObjectBuilder bldr = new QObjectBuilder();
 		for(int i = 0; i < range.getLength(); i++)
 		{
-			int index = getInt(range.get(i));
+			int index = range.get(i).getInt();
 			QObject q = lexpr.get(index-1);
 			bldr.add(q);
 		}
 		return bldr.result();
 	}
 
-	int getInt(QObject qObject) {
-		if(qObject.getMode() == "integer")
-			return (Integer)qObject.getValue();
-		if(qObject.getMode() == "numeric")
-			return (int)(double)(Double)qObject.getValue();
-		throw new RuntimeException("unsupported mode for getInt: " + qObject.getMode());
-	}
 
 	// (XXFUNCALL c (XXSUBLIST (XXSUB1 1) (XXSUB1 2)))
 	QObject evalCallFunction(Tree term) {
@@ -221,8 +218,12 @@ public class QInterpreter {
 		}
 		HashMap<String, Boolean> assigned = new HashMap<String, Boolean>();
 
+		// (..., x=y, ...)
 		handleXXSymSub1(subList, funcEnv, assigned);
-		handleXXSub(subList, formalList, funcEnv, assigned);		
+
+		// (..., x, ...)
+		handleXXSub(subList, formalList, funcEnv, assigned);
+		
 		assignRemainingDefaultArguments(formalList, funcEnv, assigned);
 	}
 
@@ -284,7 +285,9 @@ public class QInterpreter {
 				continue;
 			Tree sym = node.getChild(0);
 			Tree val = node.getChild(1);
-			funcEnv.put(sym.getText(), evalExpr(val));
+			QObject arg = evalExpr(val).QClone();
+			arg.setAttribute("names", QObject.createCharacter(sym.getText()));
+			funcEnv.put(sym.getText(), arg);
 			
 			assigned.put(sym.getText(), true);
 		}
@@ -296,7 +299,7 @@ public class QInterpreter {
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
 			QObject arg = evalExpr(subList.getChild(i).getChild(0));
-			if(arg.getMode() == "list" || arg.getLength() == 1)
+			if(arg.getMode() == QList.LIST_TYPE || arg.getLength() == 1)
 			{
 				args.set(argNum++, arg);
 			}
