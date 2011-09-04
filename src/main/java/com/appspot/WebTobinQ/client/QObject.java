@@ -22,15 +22,14 @@ public class QObject {
 	public QObject(String mode, Object val, HashMap<String, QObject> attrs)
 	{
 		this(mode, val);
-		if(attrs != null)
-		{
-			copyAttributes(attrs);
-		}
+		copyAttributes(attrs);
 	}
 
 	private void copyAttributes(HashMap<String, QObject> attrs) {
-		_attributes = new HashMap<String, QObject>();
-		_attributes.putAll(attrs);
+		if(attrs != null) {
+			_attributes = new HashMap<String, QObject>();
+			_attributes.putAll(attrs);
+		}
 	}
 	
 	public QObject(String mode, Object val)
@@ -178,6 +177,14 @@ public class QObject {
 		if(getMode() == "numeric")
 			return (int)(double)(Double)getValue();
 		throw new RuntimeException("unsupported mode for getInt: " + getMode());
+	}
+	
+	public double getDouble() {
+		if(getMode() == "integer")
+			return (Integer)getValue();
+		if(getMode() == "numeric")
+			return (Double)getValue();
+		throw new RuntimeException("unsupported mode for getDouble: " + getMode());
 	}
 	
 	public QObject getBB(QObject arg)

@@ -129,7 +129,7 @@ public class QList extends QObject {
 				buf.append(" ");
 				String val = get(j).get(i).toString();
 				buf.append(val);
-				appendSpace(buf, colMaxLength.get(i+1) - val.length());
+				appendSpace(buf, colMaxLength.get(j+1) - val.length());
 			}
 			buf.append("\n");
 		}

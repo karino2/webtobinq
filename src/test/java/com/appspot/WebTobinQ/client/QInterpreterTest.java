@@ -44,6 +44,14 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_eval_dataFrame()
+	{
+		String expected = "  x   y  \n1 1.0 1.0\n2 2.0 2.0\n3 3.0 3.0\n";
+		QObject df = _intp.eval("x<-1:3;y<-1:3;data.frame(x, y)");
+		assertEquals(expected, df.toString());
+	}
+	
+	@Test
 	public void test_evalLE_oneLe_true()
 	{
 		QObject expected = createLogical(true);
@@ -169,7 +177,41 @@ public class QInterpreterTest {
 		QObject actual = _intp.eval("mean(1:3)");
 		assertNumericEquals(expected, actual);
 	}
+	@Test
+	public void test_eval_sqrt_vector()
+	{
+		QObject actual = _intp.eval("sqrt(1:3)");
+		assertEquals(3, actual.getLength());
+		assertEquals(Math.sqrt(1), actual.get(0).getDouble());
+		assertEquals(Math.sqrt(2), actual.get(1).getDouble());
+		assertEquals(Math.sqrt(3), actual.get(2).getDouble());
+	}
 	
+	@Test
+	public void test_eval_sqrt()
+	{		
+		QObject actual = _intp.eval("sqrt(3)");
+		assertEquals(1, actual.getLength());
+		assertEquals(Math.sqrt(3), actual.getDouble());
+	}
+	
+	@Test
+	public void test_eval_var()
+	{
+		QObject expected = createNumeric(1);
+		QObject actual = _intp.eval("var(1:3)");
+		assertNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalExpr_concat() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("c(1,2,3)");
+		assertEquals(3, actual.getLength());
+		assertEquals(1, actual.get(0).getInt());
+		assertEquals(2, actual.get(1).getInt());
+		assertEquals(3, actual.get(2).getInt());
+	}
 	
 	@Test
 	public void test_evalExpr_subscript_two() throws RecognitionException
@@ -180,12 +222,17 @@ public class QInterpreterTest {
 		target.set(1, q2);
 		_intp._curEnv.put("a", target);
 		
-		Tree tree = parseExpression("a[1:2]");
-		QObject actual = _intp.evalExpr(tree);
+		QObject actual = callEvalExpr("a[1:2]");
 
 		assertEquals(2, actual.getLength());
 		assertNumericEquals(createNumeric(1), actual.get(0));
 		assertNumericEquals(createNumeric(2), actual.get(1));
+	}
+
+	private QObject callEvalExpr(String code) throws RecognitionException {
+		Tree tree = parseExpression(code);
+		QObject actual = _intp.evalExpr(tree);
+		return actual;
 	}
 	
 	CommonTree createTree(int type, String val)
@@ -324,8 +371,19 @@ public class QInterpreterTest {
 	{
 		Environment target = callAssignToFormalListWithNullFormalList("c(1, 2, 3)");
 		QObject ret = target.get(ARGNAME);
+		assertEquals(3, ret.getLength());
 		
 		assertVector123(ret);
+	}
+	
+	@Test
+	public void test_assignToFormalList_nullFormalList_vectorArg() throws RecognitionException
+	{
+		Environment target = callAssignToFormalListWithNullFormalList("data.frame(c(1, 2, 3))");
+		QObject ret = target.get(ARGNAME);
+		assertEquals(1, ret.getLength());
+		
+		assertVector123(ret.get(0));
 	}
 
 	// code should include funcname, like "c(1, 2, 3)"

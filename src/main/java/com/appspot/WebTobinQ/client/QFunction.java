@@ -77,8 +77,8 @@ public class QFunction extends QObject {
 				QObject endO = funcEnv.get("end");
 				if(begO == null || endO == null)
 					throw new RuntimeException("seq argument seems wrong");
-				double beg = getDouble(begO);
-				double end = getDouble(endO);
+				double beg = begO.getDouble();
+				double end = endO.getDouble();
 				
 				QObject res = new QObject("numeric");
 				for(int i = 0; i <= end-beg; i++)
@@ -114,8 +114,8 @@ public class QFunction extends QObject {
 					if(ylim.getLength() != 2)
 						throw new RuntimeException("ylim is not 2 element object");
 					Axis axis = chart.getYAxis();
-					axis.setAxisMin(getDouble(ylim.get(0)));
-					axis.setAxisMax(getDouble(ylim.get(1)));
+					axis.setAxisMin(ylim.get(0).getDouble());
+					axis.setAxisMax(ylim.get(1).getDouble());
 				}
 
 				/*
@@ -162,18 +162,11 @@ public class QFunction extends QObject {
 			}			
 		};
 	}
-	public static double getDouble(QObject value) {
-		if(value.getMode() == "integer")
-			return (Integer)value.getValue();
-		if(value.getMode() == "numeric")
-			return (Double)value.getValue();
-		return 0;
-	}
 	private static void addPoints(QObject x, QObject y, GChart.Curve curve) {
 		for (int i = 0; i < x.getLength(); i++)
 		{
-			double x1 = getDouble(x.get(i));
-			double y1 = getDouble(y.get(i));
+			double x1 = x.get(i).getDouble();
+			double y1 = y.get(i).getDouble();
 			curve.addPoint(x1, y1);
 		}
 	}
@@ -184,7 +177,7 @@ public class QFunction extends QObject {
 		double sum = 0;
 		for(int i = 0; i < len; i++)
 		{
-			sum += getDouble(obj.get(i));
+			sum += obj.get(i).getDouble();
 		}
 		return sum;
 	}
@@ -196,13 +189,16 @@ public class QFunction extends QObject {
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
 				QObject args = funcEnv.get(ARGNAME);
-				int len = args.getLength();
-				double mean = sumObj(args)/len;
+				if(args.getLength() != 1)
+					throw new RuntimeException("Argument of var should be 1");
+				QObject arg = args.get(0);
+				int len = arg.getLength();
+				double mean = sumObj(arg)/len;
 				
 				double var = 0;
 				for(int i = 0; i < len; i++)
 				{
-					double x = getDouble(args.get(i));
+					double x = arg.get(i).getDouble();
 					var += (x - mean)*(x-mean);
 				}
 				var = var/(len-1);
@@ -221,8 +217,11 @@ public class QFunction extends QObject {
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
 				QObject args = funcEnv.get(ARGNAME);
-				int len = args.getLength();
-				double mean = sumObj(args)/len;
+				if(args.getLength() != 1)
+					throw new RuntimeException("Argument of mean should be 1");
+				QObject arg = args.get(0);
+				int len = arg.getLength();
+				double mean = sumObj(arg)/len;
 				return QObject.createNumeric(mean);
 				
 			}
@@ -239,11 +238,11 @@ public class QFunction extends QObject {
 				QObject args = funcEnv.get("x");
 				int len = args.getLength();
 				if(len == 1)
-					return QObject.createNumeric(Math.sqrt(getDouble(args)));
+					return QObject.createNumeric(Math.sqrt(args.getDouble()));
 				QObjectBuilder bldr = new QObjectBuilder();
 				for(int i = 0; i < len; i++)
 				{
-					QObject x = QObject.createNumeric(Math.sqrt(getDouble(args.get(i))));
+					QObject x = QObject.createNumeric(Math.sqrt(args.get(i).getDouble()));
 					bldr.add(x);
 				}
 				return bldr.result();

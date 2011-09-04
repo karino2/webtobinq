@@ -298,27 +298,15 @@ public class QInterpreter {
 		int argNum = 0;
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
+			Tree subObj = subList.getChild(i).getChild(0);
 			QObject arg = evalExpr(subList.getChild(i).getChild(0));
-			if(arg.getMode() == QList.LIST_TYPE || arg.getLength() == 1)
-			{
-				args.set(argNum++, arg);
-			}
-			else
-			{
-				for(int j = 0; j < arg.getLength(); j++)
-				{
-					args.set(argNum++, arg.get(j));
-				}
-			}
+			if(subObj.getType() == QParser.SYMBOL)
+				arg.setAttribute("names", QObject.createCharacter(subObj.getText()));
+			args.set(argNum++, arg);
 		}
 		funcEnv.put(ARGNAME, args);
 	}
 
-	public static double getDouble(QObject o)
-	{
-		return QFunction.getDouble(o);
-	}
-	
 	interface doubleBinaryOperable {
 		QObject execute(double i, double j);
 	}
@@ -326,7 +314,7 @@ public class QInterpreter {
 	QObject evalBinaryDouble(QObject arg1, QObject arg2, doubleBinaryOperable op)
 	{
 		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
-			return op.execute(getDouble(arg1),getDouble(arg2));
+			return op.execute(arg1.getDouble(),arg2.getDouble());
 		QObjectBuilder bldr = new QObjectBuilder();
 		QObject r1 = arg1;
 		QObject r2 = arg2;
@@ -336,8 +324,8 @@ public class QInterpreter {
 			r1 = arg1.recycle(r2.getLength());	
 		for(int i = 0; i < r1.getLength(); i++)
 		{
-			double i1 = getDouble(r1.get(i));
-			double i2 = getDouble(r2.get(i));
+			double i1 = r1.get(i).getDouble();
+			double i2 = r2.get(i).getDouble();
 			QObject q = op.execute(i1, i2);
 			bldr.add(q);
 		}
