@@ -20,16 +20,23 @@ public class QList extends QObject {
 		_vector.set(i, qObject.QClone());
 	}
 	
+	public QObject getBBInt(int i)
+	{
+		if(isDataFrame())
+			return get(i).get(0);
+		return get(i); // currently, get of list return contents.
+	}
+	
 	// getBB return the contents of row list. not row list itself.
 	public QObject getBB(QObject arg)
 	{
 		if(arg.isNumber())
-			return get(arg.getInt()).get(0);
+			return getBBInt(arg.getInt());
 		if(arg.getMode() != CHARACTER_TYPE)
 			throw new RuntimeException("Arg of [[]] neither number nor string: " + arg.getMode());
 		String colName = (String)arg.getValue();
 		int i = getIndex(colName);
-		return get(i).get(0);
+		return getBBInt(i);
 	}
 	
 	private int getIndex(String colName) {
@@ -84,7 +91,7 @@ public class QList extends QObject {
 	}
 	
 	// -- begin data frame dependent.
-	public static QObject createDataFrame()
+	public static QList createDataFrame()
 	{
 		QList df = new QList();
 		df.setAttribute("class", QObject.createCharacter("data.frame"));
@@ -176,11 +183,11 @@ public class QList extends QObject {
 	}
 	
 	// args must be list of vector.
-	public static QObject createDataFrameFromVector(QObject args)
+	public static QList createDataFrameFromVector(QObject args)
 	{
 		validateArg(args);
 		
-		QObject ret = createDataFrame();
+		QList ret = createDataFrame();
 		
 		QObject rowNames = rowNames(args);
 		ret.setAttribute("row.names", rowNames);		

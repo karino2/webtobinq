@@ -97,7 +97,7 @@ public class QInterpreterTest {
 		assertEquals(3, actual.getLength());
 		assertQNumericEquals(4, actual.get(0));
 		assertNotNull(actual.toString());
-		// assertEquals("numeric", actual.getMode());
+		assertEquals("numeric", actual.getMode());
 	}
 	
 	private QObject callSubscriptBB(String code) throws RecognitionException {

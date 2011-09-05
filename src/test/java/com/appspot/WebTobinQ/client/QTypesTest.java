@@ -211,9 +211,9 @@ public class QTypesTest {
 		QObject y = createVector12("y");
 		args.set(0, x);
 		args.set(1, y);		
-		QObject df = QList.createDataFrameFromVector(args);
+		QList df = QList.createDataFrameFromVector(args);
 		
-		assertEquals(y, df.get(1));
+		assertEquals(y, df.getBBInt(1));
 	}
 	
 	@Test
