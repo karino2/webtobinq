@@ -1,11 +1,14 @@
 package com.appspot.WebTobinQ.client;
 
+import java.util.ArrayList;
+
 import org.antlr.runtime.ANTLRStringStream;
 import org.antlr.runtime.CharStream;
 import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 
+import com.appspot.WebTobinQ.client.TableRetrievable.RetrieveArgument;
 import com.googlecode.gchart.client.GChart;
 import com.googlecode.gchart.client.GChart.Axis;
 
@@ -259,6 +262,52 @@ public class QFunction extends QObject {
 				QObject arg = funcEnv.get(ARGNAME);
 				return QList.createDataFrameFromVector(arg);
 			}
+		};
+	}
+	
+	public static TableRetrievable _retrievable;
+	
+	public static QFunction createReadServer(TableRetrievable retrievable)
+	{
+		_retrievable = retrievable;
+		return new QFunction(parseFormalList("url, table, fields, range, num=10"), null) {
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject url = funcEnv.get("url");
+				QObject tableName = funcEnv.get("table");
+				QObject fieldsQ = funcEnv.get("fields");
+				QObject range = funcEnv.get("range");
+				QObject num = funcEnv.get("num");
+				
+				ArrayList<String> fields = qobjectToFieldsQ(fieldsQ);
+
+				RetrieveArgument arg;
+				
+				if(null == range)
+					arg = new RetrieveArgument();
+				else {
+					QObject fname = range.get(0);
+					QObject beg = range.get(1);
+					QObject end = range.get(2);
+					arg = new RetrieveArgument(fname.getValue().toString(),
+							beg.getDouble(), end.getDouble(), num.getInt());
+				}
+				
+				JSONTable table = _retrievable.retrieve(url.getValue().toString(),
+						tableName.getValue().toString(),
+						fields, arg);
+				
+				return QList.createDataFrameFromJSONTable(table);
+			}
+			ArrayList<String> qobjectToFieldsQ(QObject fieldsQ) {
+				ArrayList<String> ret = new ArrayList<String>();
+				for(int i = 0; i < fieldsQ.getLength(); i++) {
+					ret.add(fieldsQ.get(i).getValue().toString());
+				}
+				return ret;
+			}
+			
 		};
 	}
 	public String toString()

@@ -162,19 +162,70 @@ public class QList extends QObject {
 		return max;
 	}
 	
+	public static QList createDataFrameFromJSONTable(JSONTable table) {
+		QList ret = createDataFrame();
+		QObject rowNames = defaultRowNames(table.getRowNum());
+		ret.setAttribute("row.names", rowNames);
+		
+		ArrayList<QList> cols = new ArrayList<QList>();
+		QObjectBuilder nameBldr = new QObjectBuilder();
+		
+		setupColsNames(table, rowNames, cols, nameBldr);
+		ret.setAttribute("names", nameBldr.result());
+		
+		copyDatas(table, cols);
+		
+		// inside set, col is copied. so you must call here.
+		for(int k = 0; k < table.getColumnNum(); k++)
+		{
+			ret.set(k, cols.get(k));
+		}
+		return ret;
+	}
+	
+	private static void copyDatas(JSONTable table, ArrayList<QList> cols) {
+		for(int row = 0; row < table.getRowNum(); row++)
+		{
+			for(int col = 0; col < table.getColumnNum(); col++)
+			{
+				cols.get(col).get(0).set(row, QObject.createNumeric(table.getItemNumeric(row, col)));
+			}
+		}
+	}
+	private static void setupColsNames(JSONTable table, QObject rowNames,
+			ArrayList<QList> cols, QObjectBuilder nameBldr) {
+		for(int i = 0; i < table.getColumnNum(); i++)
+		{
+			QList col = createDataFrame();
+			col.set(0, QObject.createNumeric(0));
+			
+			QObject name = null;
+			name = QObject.createCharacter(table.getTitle(i));
+	
+			nameBldr.add(name);
+			col.setAttribute("names", name);
+			col.setAttribute("row.names", rowNames);
+			cols.add(col);
+		}
+	}
 	protected static QObject copyAsDataFrame(QObject o) {
 		QObject df = createDataFrame();
 		QObjectBuilder bldr = new QObjectBuilder();
 		for(int i = 0; i < o.getLength(); i++)
-			bldr.add(o.get(i).QClone());
+			bldr.add(o.get(i).QClone()); //TODO: remove clone.
 		df.set(0, bldr.result());
 		return df;
 	}
 	
 	protected static QObject rowNames(QObject args) {
-		QObjectBuilder rowBuilder = new QObjectBuilder();
 		QObject o2 = args.get(0);
-		for(int j = 0; j < o2.getLength(); j++)
+		int rowNum = o2.getLength();
+		return defaultRowNames(rowNum);
+	}
+	
+	static QObject defaultRowNames(int rowNum) {
+		QObjectBuilder rowBuilder = new QObjectBuilder();
+		for(int j = 0; j < rowNum; j++)
 		{
 			rowBuilder.add(QObject.createCharacter(String.valueOf(j+1)));
 		}

@@ -1,10 +1,10 @@
 package com.appspot.WebTobinQ.client;
 
+import org.antlr.runtime.tree.Tree;
+
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.event.dom.client.ClickEvent;
 import com.google.gwt.event.dom.client.ClickHandler;
-import com.google.gwt.event.dom.client.KeyDownEvent;
-import com.google.gwt.event.dom.client.KeyDownHandler;
 import com.google.gwt.event.dom.client.KeyUpEvent;
 import com.google.gwt.event.dom.client.KeyUpHandler;
 import com.google.gwt.user.client.ui.Button;
@@ -18,7 +18,7 @@ import com.googlecode.gchart.client.GChart;
 /**
  * Entry point classes define <code>onModuleLoad()</code>.
  */
-public class WebTobinQ implements EntryPoint, Plotable {
+public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.ResumeListener {
 
   DialogBox _dialogBox;
 	
@@ -69,6 +69,7 @@ public class WebTobinQ implements EntryPoint, Plotable {
 	}
 
 
+	QInterpreter _interpreter;
 	TextAreaConsole	_console;
     public void onModuleLoad() {
 	  final TextArea inputArea = new TextArea();
@@ -78,7 +79,7 @@ public class WebTobinQ implements EntryPoint, Plotable {
 	  
 
 	  _console = new TextAreaConsole(consoleArea);
-	  final QInterpreter interpreter = new QInterpreter(_console, this);
+	  _interpreter = new QInterpreter(_console, this, new JSONPTableRetriever(this));
 
 	  // use keyup because some eval (like plot) loose focus and fail to invoke default event.
 	  inputArea.addKeyUpHandler(new KeyUpHandler(){
@@ -92,7 +93,7 @@ public class WebTobinQ implements EntryPoint, Plotable {
 					int pos = inputArea.getCursorPos();
 					String codes = inputArea.getText();
 					String currentLine = getCurrentLine(pos-1, codes);
-					eval(interpreter, currentLine);
+					eval(currentLine);
 				}				
 			}
 		  
@@ -101,7 +102,7 @@ public class WebTobinQ implements EntryPoint, Plotable {
       final Button evalButton = new Button("Eval All", new ClickHandler(){
 		public void onClick(ClickEvent event) {
 			String codes = inputArea.getText();
-			eval(interpreter, codes);
+			eval(codes);
 		}
 		});
       final Button clearButton = new Button("Clear Console", new ClickHandler(){
@@ -124,13 +125,19 @@ public class WebTobinQ implements EntryPoint, Plotable {
 
   
   }
-  public static void eval(final QInterpreter interpreter, String codes) {
+    
+  Tree _suspendedValue;
+  public void eval(String codes) {
 	try{		
-		interpreter.eval(codes);
+		_interpreter.eval(codes);
+	}
+	catch(BlockException be)
+	{
+		_suspendedValue = be._currentValueNode;
 	}
 	catch(RuntimeException e)
 	{
-		interpreter.println("error: " + e.toString());
+		_interpreter.println("error: " + e.toString());
 		e.printStackTrace();
 	}
   }
@@ -147,5 +154,24 @@ public class WebTobinQ implements EntryPoint, Plotable {
 		else
 			beg += 1;
 		return codes.substring(beg, end);
+	}
+
+	public void onResume() {
+		try{
+			_interpreter.continueEval(_suspendedValue);
+		}
+		catch(BlockException be)
+		{
+			_suspendedValue = be._currentValueNode;
+		}
+		catch(RuntimeException e)
+		{
+			_interpreter.println("error: " + e.toString());
+			e.printStackTrace();
+		}
+	}
+
+	public void onResumeFail(String message) {
+		_interpreter.println("JSONP error:" + message);
 	}
 }

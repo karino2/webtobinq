@@ -5,7 +5,12 @@ import static junit.framework.Assert.assertNotSame;
 import static com.appspot.WebTobinQ.client.QObject.createNumeric;
 import static com.appspot.WebTobinQ.client.QObject.createCharacter;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+
 import org.junit.Test;
+
+import com.appspot.WebTobinQ.client.TableRetrievable.RetrieveArgument;
 
 
 public class QTypesTest {
@@ -274,6 +279,63 @@ public class QTypesTest {
 		args.set(1, y);
 		QList.validateArg(args);
 	}
+	
+	
+	class JSONTableForTest extends JSONTable
+	{
+		String[] _titles;
+		String[] _types;
+		Object[] _data;
+		public JSONTableForTest(String[] titles, String[] types, Object[] data){
+			super(null);
+			_titles = titles;
+			_types = types;
+			_data = data;
+		}
+		
+		public String getTitle(int i)
+		{
+			return _titles[i];
+		}
+		
+		public int getColumnNum()
+		{
+			return _titles.length;
+		}
+		
+		public double getItemNumeric(int irow,int col)
+		{
+			Object[] row = (Object[])_data[irow];
+			return (Double)row[col];
+		}
+		public int getRowNum() {
+			return _data.length;
+		}
+	}
+	
+	@Test
+	public void test_JSONTable()
+	{
+		JSONTable jt = new JSONTableForTest(new String[]{ "日付", "GDP", "消費" }, 
+				new String[] {"integer", "numeric", "numeric"},
+				new Object[] { new Object[]{1980.0, 312712.7, 174382.7}, new Object[]{1981.0, 321490.5, 177074.9}});
+		assertEquals(3, jt.getColumnNum());
+		assertEquals(2, jt.getRowNum());
+		assertEquals("日付", jt.getTitle(0));
+		assertEquals("GDP", jt.getTitle(1));
+		assertEquals("消費", jt.getTitle(2));
+		assertEquals(177074.9, jt.getItemNumeric(1, 2));
+	}
+	
+	@Test
+	public void test_createDataFrameFromJSONTable()
+	{
+		JSONTable jt = new JSONTableForTest(new String[]{ "日付", "GDP", "消費" }, 
+				new String[] {"integer", "numeric", "numeric"},
+				new Object[] { new Object[]{1980.0, 312712.7, 174382.7}, new Object[]{1981.0, 321490.5, 177074.9}});
+		QList df = QList.createDataFrameFromJSONTable(jt);
+		assertEquals("  日付     GDP      消費      \n1 1980.0 312712.7 174382.7\n2 1981.0 321490.5 177074.9\n", df.toString());
+	}
 
 	// --------- other misc test -------------
 	@Test
@@ -329,4 +391,42 @@ public class QTypesTest {
 		
 		assertEquals(expected, actual);
 	}
+	
+	class JSONPTableRetrieverForTest extends JSONPTableRetriever
+	{
+		public JSONPTableRetrieverForTest(ResumeListener listener) {
+			super(listener);
+		}
+
+		public String URLEncode(String encodee)
+		{
+			try {
+				return URLEncoder.encode(encodee, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				// never reached here.
+				e.printStackTrace();
+				return null;
+			}
+		}
+	}
+	
+	@Test
+	public void test_buildURL()
+	{
+		String expected = "http://test/t/GDP/json?f=a1,a2&n=10&r=a1,1990.0,2000.0";
+
+		JSONPTableRetriever retriever = new JSONPTableRetrieverForTest(null);
+		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{"a1", "a2"} , new RetrieveArgument("a1", 1990,2000, 10));
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_RetrieveArgument_equals()
+	{
+		RetrieveArgument arg1 = new RetrieveArgument();
+		RetrieveArgument arg2 = new RetrieveArgument();
+		assertEquals(arg1, arg2);
+	}
+	
 }

@@ -26,17 +26,20 @@ public class QInterpreter {
 		_curEnv.put("var", QFunction.createVar());
 		_curEnv.put("sqrt", QFunction.createSqrt());
 		_curEnv.put("data.frame", QFunction.createDataFrame());
+		_curEnv.put("read.server", QFunction.createReadServer(_retrievable));
 	}
 	
 	public QInterpreter(Writable console) {
-		this(console, null);
+		this(console, null, null);
 	}	
 	
 	
 	Plotable _plotable;
-	public QInterpreter(Writable console, Plotable plotable) {
+	TableRetrievable _retrievable;
+	public QInterpreter(Writable console, Plotable plotable, TableRetrievable retrievable) {
 		_curEnv = _rootEnv = new Environment(null);
 		_plotable = plotable;
+		_retrievable = retrievable;
 		this._console = console;
 		registerBuiltinFunction();
 	}
@@ -51,13 +54,14 @@ public class QInterpreter {
 		println("<deb#>" + str);
 	}
 	
+	Tree _lastTree;
 	public QObject eval(String codestext)
 	{
 		QObject ret = null;
 		try {
-			Tree tree = buildTree(codestext);
-			debugPrint(tree.toStringTree());
-			ret = evalTree(tree);
+			_lastTree = buildTree(codestext);
+			debugPrint(_lastTree.toStringTree());
+			ret = evalTree(_lastTree);
 			if(!QObject.Null.equals(ret))
 				println(ret.toString());
 		} catch (RecognitionException e) {
@@ -105,7 +109,17 @@ public class QInterpreter {
 		if(term.getType() == QParser.XXBINARY) // recursive call now.
 			return evalBinary(term.getChild(0), term.getChild(1), term.getChild(2));
 		if(term.getType() == QParser.XXFUNCALL)
-			return evalCallFunction(term);
+		{
+			try
+			{
+				return evalCallFunction(term);
+			}
+			catch(BlockException e)
+			{
+				Tree xxval = getParentXXValue(term);
+				throw new BlockException(xxval);
+			}
+		}
 		if(term.getType() == QParser.SYMBOL)
 			return _curEnv.get(term.getText());
 		if(term.getType() == QParser.NULL_CONST)
@@ -127,6 +141,15 @@ public class QInterpreter {
 			return QObject.createCharacter(term.getText().substring(1, term.getText().length()-1));
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
+	}
+
+	private Tree getParentXXValue(Tree start) {
+		Tree cur = start;
+		while(cur != null && cur.getType() != QParser.XXVALUE )
+			cur = cur.getParent();
+		if(cur == null)
+			throw new RuntimeException("Invalid AST tree. no XXVALUE in parent.");
+		return cur;
 	}
 
 	// (XXSUBSCRIPT '[' lexpr sublist)
@@ -463,5 +486,31 @@ public class QInterpreter {
 	 	QParser.prog_return r = parser.prog();
 		Tree tree = (Tree)r.getTree();
 		return tree;
+	}
+
+	public QObject continueEval(Tree suspendedValue) {
+		boolean reached = false;
+		QObject ret = QObject.Null;
+		ForestIterater iter = new ForestIterater(_lastTree);
+		while(iter.hasNext())
+		{
+			ForestNode node = iter.next();
+			if(node.getEdge() == Edge.Trailing)
+				continue;
+			Tree t = node.getElement();
+			if(t.getType() == QParser.XXVALUE)
+			{
+				if(t == suspendedValue) {
+					reached = true;
+					ret = evalValue(t);
+				} else if(reached){
+					ret = evalValue(t);
+				}
+				iter.skipChildren();
+			}
+		}
+		if(!QObject.Null.equals(ret))
+			println(ret.toString());
+		return ret;
 	}
 }
