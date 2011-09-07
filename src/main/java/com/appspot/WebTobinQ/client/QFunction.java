@@ -275,6 +275,20 @@ public class QFunction extends QObject {
 			}
 		};
 	}
+	public static QFunction createLength()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get(ARGNAME);
+				if(args.getLength() != 1)
+					throw new RuntimeException("Argument of length should be 1");
+				QObject arg = args.get(0);
+				return QObject.createNumeric(arg.getLength());
+			}
+		};
+	}
 	
 	
 	public static TableRetrievable _retrievable;
