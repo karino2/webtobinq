@@ -264,6 +264,19 @@ public class QFunction extends QObject {
 		};
 	}
 	
+	public static QFunction createList()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get(ARGNAME);
+				return arg; // arg is QList. in this case, I think I don't need QClone().
+			}
+		};
+	}
+	
+	
 	public static TableRetrievable _retrievable;
 	
 	public static QFunction createReadServer(TableRetrievable retrievable)
@@ -284,7 +297,7 @@ public class QFunction extends QObject {
 				RetrieveArgument arg;
 				
 				if(null == range)
-					arg = new RetrieveArgument();
+					arg = new RetrieveArgument(num.getInt());
 				else {
 					QObject fname = range.get(0);
 					QObject beg = range.get(1);

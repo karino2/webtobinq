@@ -504,6 +504,16 @@ public class QInterpreterTest {
 		assertQNumericEquals(10, end);
 	}
 	
+	@Test
+	public void test_assignToFormalList_readServer_num_not_updated() throws RecognitionException
+	{
+		Environment target = callAssignToFormalList("url, table, fields, range, num=10",
+				"read.server(\"dummy\", \"dummy\", c(\"dummy\"), num=100)");
+		
+		QObject num = target.get("num");
+		
+		assertQNumericEquals(100, num);
+	}
 
 	// code is like "c(1, 2, 3)"
 	private Tree buildSubList(String code) throws RecognitionException {

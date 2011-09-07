@@ -422,6 +422,17 @@ public class QTypesTest {
 	}
 	
 	@Test
+	public void test_buildURL_num()
+	{
+		String expected = "http://test/t/GDP/json?f=a1,a2&n=3&r=a1,1990.0,2000.0";
+
+		JSONPTableRetriever retriever = new JSONPTableRetrieverForTest(null);
+		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{"a1", "a2"} , new RetrieveArgument("a1", 1990,2000, 3));
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
 	public void test_RetrieveArgument_equals()
 	{
 		RetrieveArgument arg1 = new RetrieveArgument();

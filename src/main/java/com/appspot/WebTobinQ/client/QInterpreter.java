@@ -26,6 +26,7 @@ public class QInterpreter {
 		_curEnv.put("var", QFunction.createVar());
 		_curEnv.put("sqrt", QFunction.createSqrt());
 		_curEnv.put("data.frame", QFunction.createDataFrame());
+		_curEnv.put("list", QFunction.createList());
 		_curEnv.put("read.server", QFunction.createReadServer(_retrievable));
 	}
 	
@@ -265,7 +266,7 @@ public class QInterpreter {
 		assignRemainingDefaultArguments(formalList, funcEnv, assigned);
 	}
 
-	private void assignRemainingDefaultArguments(Tree formalList, Environment funcEnv,
+	void assignRemainingDefaultArguments(Tree formalList, Environment funcEnv,
 			HashMap<String, Boolean> assigned) {
 		for(int i = 0; i < formalList.getChildCount(); i++)
 		{
@@ -280,7 +281,7 @@ public class QInterpreter {
 		}
 	}
 
-	private void handleXXSub(Tree subList, Tree formalList,
+	void handleXXSub(Tree subList, Tree formalList,
 			Environment funcEnv, HashMap<String, Boolean> assigned) {
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
@@ -314,7 +315,7 @@ public class QInterpreter {
 		throw new RuntimeException("Too much arguments");
     }
 
-	private void handleXXSymSub1(Tree subList, Environment funcEnv,
+	void handleXXSymSub1(Tree subList, Environment funcEnv,
 			HashMap<String, Boolean> assigned) {
 		for(int i = 0; i < subList.getChildCount(); i++)
 		{
