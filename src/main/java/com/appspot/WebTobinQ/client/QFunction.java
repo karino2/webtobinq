@@ -128,7 +128,6 @@ public class QFunction extends QObject {
 			    chart.setChartSize(350, 250);
 			    chart.addCurve();
 				GChart.Curve curve = chart.getCurve();
-				intp.debugPrint("curveIndex="+chart.getCurveIndex(curve));
 			    addPoints(x, y, curve);
 			    // chart.getCurve().setLegendLabel("x, y");
 			    chart.getXAxis().setAxisLabel("x");
@@ -136,7 +135,7 @@ public class QFunction extends QObject {
 			    
 			    _plotable.showChart();
 			    
-				return null;
+				return QObject.Null;
 			}
 		};
 	}
@@ -161,7 +160,7 @@ public class QFunction extends QObject {
 			    addPoints(x, y, curve);
 				
 			    _plotable.showChart();
-				return null;
+				return QObject.Null;
 			}			
 		};
 	}

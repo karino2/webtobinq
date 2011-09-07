@@ -2,6 +2,7 @@ package com.appspot.WebTobinQ.client;
 
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
+import com.google.gwt.core.client.JsArrayNumber;
 import com.google.gwt.core.client.JsArrayString;
 
 public class JSONTable {
@@ -45,7 +46,12 @@ public class JSONTable {
 	}
 
 	public double getItemNumeric(int row, int col) {
-		return _ntable.convertToDouble(_ntable.getData().get(row).get(col));
+		JsArray<JavaScriptObject> rowAr = _ntable.getData().get(row);
+		double ret = ((JsArrayNumber)rowAr.cast()).get(col);
+		return ret;
+//		JavaScriptObject jsObj = rowAr.get(col);
+//		return _ntable.convertToDouble(jsObj);
+//		return _ntable.convertToDouble(_ntable.getData().get(row).get(col));
 	}
 	
 }

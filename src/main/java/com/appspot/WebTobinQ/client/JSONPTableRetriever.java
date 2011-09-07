@@ -43,6 +43,7 @@ public class JSONPTableRetriever implements TableRetrievable {
 		_prevArg = arg;
 		
 		 JsonpRequestBuilder requestBuilder = new JsonpRequestBuilder();
+		 requestBuilder.setTimeout(100000);
 		 requestBuilder.requestObject(builtUrl, new AsyncCallback<JSONTable.JSONNativeTable>() {
 
 			public void onFailure(Throwable caught) {
