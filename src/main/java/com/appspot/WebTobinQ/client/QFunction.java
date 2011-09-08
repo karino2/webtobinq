@@ -313,10 +313,9 @@ public class QFunction extends QObject {
 				if(null == range)
 					arg = new RetrieveArgument(num.getInt());
 				else {
-					QObject fname = range.get(0);
-					QObject beg = range.get(1);
-					QObject end = range.get(2);
-					arg = new RetrieveArgument(fname.getValue().toString(),
+					QObject beg = range.get(0);
+					QObject end = range.get(1);
+					arg = new RetrieveArgument(
 							beg.getDouble(), end.getDouble(), num.getInt());
 				}
 				
@@ -328,6 +327,8 @@ public class QFunction extends QObject {
 			}
 			ArrayList<String> qobjectToFieldsQ(QObject fieldsQ) {
 				ArrayList<String> ret = new ArrayList<String>();
+				if(fieldsQ == null)
+					return ret;
 				for(int i = 0; i < fieldsQ.getLength(); i++) {
 					ret.add(fieldsQ.get(i).getValue().toString());
 				}

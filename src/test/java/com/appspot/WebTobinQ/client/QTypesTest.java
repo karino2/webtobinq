@@ -413,10 +413,10 @@ public class QTypesTest {
 	@Test
 	public void test_buildURL()
 	{
-		String expected = "http://test/t/GDP/json?f=a1,a2&n=10&r=a1,1990.0,2000.0";
+		String expected = "http://test/t/GDP/json?f=a1,a2&n=10&r=1990.0,2000.0";
 
 		JSONPTableRetriever retriever = new JSONPTableRetrieverForTest(null);
-		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{"a1", "a2"} , new RetrieveArgument("a1", 1990,2000, 10));
+		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{"a1", "a2"} , new RetrieveArgument(1990.0, 2000.0, 10));
 		
 		assertEquals(expected, actual);
 	}
@@ -424,10 +424,21 @@ public class QTypesTest {
 	@Test
 	public void test_buildURL_num()
 	{
-		String expected = "http://test/t/GDP/json?f=a1,a2&n=3&r=a1,1990.0,2000.0";
+		String expected = "http://test/t/GDP/json?f=a1,a2&n=3&r=1990.0,2000.0";
 
 		JSONPTableRetriever retriever = new JSONPTableRetrieverForTest(null);
-		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{"a1", "a2"} , new RetrieveArgument("a1", 1990,2000, 3));
+		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{"a1", "a2"} , new RetrieveArgument(1990.0 ,2000.0, 3));
+		
+		assertEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_buildURL_noFields()
+	{
+		String expected = "http://test/t/GDP/json?n=3&r=1990.0,2000.0";
+
+		JSONPTableRetriever retriever = new JSONPTableRetrieverForTest(null);
+		String actual = retriever.buildURL("http://test/t/", "GDP", new String[]{} , new RetrieveArgument(1990.0, 2000.0, 3));
 		
 		assertEquals(expected, actual);
 	}
@@ -440,4 +451,34 @@ public class QTypesTest {
 		assertEquals(arg1, arg2);
 	}
 	
+	@Test
+	public void test_RetrieveArgument_equals_withval()
+	{
+		RetrieveArgument arg1 = new RetrieveArgument(1980.0, 2000.0, 3);
+		RetrieveArgument arg2 = new RetrieveArgument(1980.0, 2000.0, 3);
+		assertEquals(arg1, arg2);
+	}
+	
+	@Test
+	public void test_RetrieveArgument_equals_notSameBegin()
+	{
+		RetrieveArgument arg1 = new RetrieveArgument(1980.0, 2000.0, 3);
+		RetrieveArgument arg2 = new RetrieveArgument(1990.0, 2000.0, 3);
+		assertNotSame(arg1, arg2);
+	}
+	
+	@Test
+	public void test_RetrieveArgument_equals_notSameEnd()
+	{
+		RetrieveArgument arg1 = new RetrieveArgument(1980.0, 2000.0, 3);
+		RetrieveArgument arg2 = new RetrieveArgument(1980.0, 2001.0, 3);
+		assertNotSame(arg1, arg2);
+	}
+	@Test
+	public void test_RetrieveArgument_equals_notSameNum()
+	{
+		RetrieveArgument arg1 = new RetrieveArgument(1980.0, 2000.0, 3);
+		RetrieveArgument arg2 = new RetrieveArgument(1980.0, 2000.0, 4);
+		assertNotSame(arg1, arg2);
+	}
 }

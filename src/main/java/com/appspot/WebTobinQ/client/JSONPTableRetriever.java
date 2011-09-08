@@ -69,20 +69,22 @@ public class JSONPTableRetriever implements TableRetrievable {
 		StringBuilder bldr = new StringBuilder();
 		bldr.append(url);
 		bldr.append(URLEncode(tableName));
-		bldr.append("/json?f=");
-		for(int i = 0; i < fields.length; i++)
-		{
-			if(i != 0)
-				bldr.append(",");
-			bldr.append(URLEncode(fields[i]));
+		bldr.append("/json?");
+		if(fields.length > 0){
+			bldr.append("f=");
+			for(int i = 0; i < fields.length; i++)
+			{
+				if(i != 0)
+					bldr.append(",");
+				bldr.append(URLEncode(fields[i]));
+			}
+			bldr.append("&");
 		}
-		bldr.append("&n=");
+		bldr.append("n=");
 		bldr.append(arg._num);
-		if(arg._fieldName != null)
+		if(arg._begin != null)
 		{
 			bldr.append("&r=");
-			bldr.append(URLEncode(arg._fieldName));
-			bldr.append(",");
 			bldr.append(URLEncode(String.valueOf(arg._begin)));
 			bldr.append(",");
 			bldr.append(URLEncode(String.valueOf(arg._end)));

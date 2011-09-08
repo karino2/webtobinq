@@ -9,12 +9,10 @@ public interface TableRetrievable {
 			final int prime = 31;
 			int result = 1;
 			long temp;
-			temp = (long)_begin;
+			temp = (long)(double)_begin;
 			result = prime * result + (int) (temp ^ (temp >>> 32));
-			temp = (long)_end;
+			temp = (long)(double)_end;
 			result = prime * result + (int) (temp ^ (temp >>> 32));
-			result = prime * result
-					+ ((_fieldName == null) ? 0 : _fieldName.hashCode());
 			result = prime * result + _num;
 			return result;
 		}
@@ -25,14 +23,17 @@ public interface TableRetrievable {
 			if (obj == null)
 				return false;
 			RetrieveArgument other = (RetrieveArgument) obj;
-			if (_begin != other._begin)
-				return false;
-			if (_end != other._end)
-				return false;
-			if (_fieldName == null) {
-				if (other._fieldName != null)
+			if (_begin == null) {
+				if(other._begin != null)
 					return false;
-			} else if (!_fieldName.equals(other._fieldName))
+			}
+			else if(!_begin.equals(other._begin))
+				return false;
+			if (_end == null) {
+				if(other._end != null)
+					return false;
+			}
+			else if(!_end.equals(other._end))
 				return false;
 			if (_num != other._num)
 				return false;
@@ -40,22 +41,20 @@ public interface TableRetrievable {
 		}
 		static final int DEFAULT_NUM = 10;
 		static final int DEFAULT_MAX = 500;
-		String _fieldName;
-		double _begin;
-		double _end;
+		Double _begin;
+		Double _end;
 		int _num;
-		public RetrieveArgument(String fieldName, double beg, double end, int num) {
-			_fieldName = fieldName;
+		public RetrieveArgument(Double beg, Double end, int num) {
 			_begin = beg;
 			_end = end;
 			_num = num;
 			
 		}
 		public RetrieveArgument(int num) {
-			this(null, 0, 0, num);
+			this(null, null, num);
 		}
-		public RetrieveArgument(String fieldName, double beg, double end) {
-			this(fieldName, beg, end, DEFAULT_MAX);
+		public RetrieveArgument(double beg, double end) {
+			this(beg, end, DEFAULT_MAX);
 		}
 		public RetrieveArgument() {
 			this(DEFAULT_NUM);
