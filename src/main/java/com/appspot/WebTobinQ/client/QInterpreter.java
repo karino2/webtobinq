@@ -8,6 +8,7 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 import com.appspot.WebTobinQ.client.ForestNode.Edge;
+import com.gargoylesoftware.htmlunit.javascript.host.Range;
 
 public class QInterpreter {
 	
@@ -100,6 +101,37 @@ public class QInterpreter {
 		return evalExpr(t.getChild(0));
 	}
 	
+	interface Assignable {
+		void assign(QObject rval);
+	}
+	
+	abstract class DefaultAssign implements Assignable {
+
+		Tree _term;
+		public DefaultAssign(Tree term) { _term = term ;}		
+	};
+	
+	public Assignable evalLexpr(Tree term)
+	{
+		if(term.getType() == QParser.SYMBOL) {
+			return new DefaultAssign(term) {
+				public void assign(QObject rval) {
+					_curEnv.put(_term.getText(), rval);
+				}				
+			};
+		}
+		if(term.getType() == QParser.XXSUBSCRIPT)
+		{
+			// (XXSUBSCRIPT '[' lexpr sublist)
+			// or (XXSUBSCRIPT LBB lexpr sublist)
+			if(term.getChild(0).getType() == QParser.LBB)
+				throw new RuntimeException("NYI: LBB assignment");
+			return evalLexprForAssignSubscriptBracket(term);
+			
+		}
+		throw new RuntimeException("assign: unsupported lexpr type(" + term.getType() + ")");
+	}
+	
 	public QObject evalExpr(Tree term)
 	{
 		// R use numeric for most of the case (instead of int).
@@ -138,11 +170,42 @@ public class QInterpreter {
 				throw new RuntimeException("child num of XXPAREN is not 1. Which case?");
 			return evalExpr(term.getChild(0));
 		}
+		// (XXEXPRLIST (XXBINARY <- b (XXBINARY * i 2)) (XXBINARY <- e (XXBINARY * i 13)))
+		if(term.getType() == QParser.XXEXPRLIST)
+		{
+			QObject ret = QObject.Null;
+			for(int i = 0; i < term.getChildCount(); i++)
+			{
+				ret = evalExpr(term.getChild(i));
+			}
+			return ret;
+		}
+		if(term.getType() == QParser.XXFOR)
+			return evalFOR(term);
 		// TODO: handle literal more seriously.
 		if(term.getType() == QParser.STR_CONST)
 			return QObject.createCharacter(term.getText().substring(1, term.getText().length()-1));
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
+	}
+
+	// "(XXFOR (XXFORCOND i (XXBINARY : 1 10)) (XXEXPRLIST (XXBINARY <- b (XXBINARY * i 2)) (XXBINARY <- e (XXBINARY * i 13))))
+	private QObject evalFOR(Tree term) {
+		Tree forCond = term.getChild(0);
+		Tree forExp = term.getChild(1);
+		Tree sym = forCond.getChild(0);
+		Tree forCondExp = forCond.getChild(1);
+		if(sym.getType() != QParser.SYMBOL)
+			throw new RuntimeException("argument of for expression is not symbol.");
+		QObject condList = evalExpr(forCondExp);
+		for(int i = 0; i < condList.getLength(); i++)
+		{
+			// for statements does not create env in R.
+			_curEnv.put(sym.getText(), condList.get(i));
+			evalExpr(forExp);
+		}
+		// for statements never return value in R (I think this is strange though).
+		return QObject.Null;
 	}
 
 	private Tree getParentXXValue(Tree start) {
@@ -173,18 +236,80 @@ public class QInterpreter {
 		QObject index = evalExpr(sublistTree.getChild(0).getChild(0));
 		return lexpr.getBB(index);
 	}
+	
+	public class LogicalSubscriptAssigner implements Assignable {
+		QObject _range;
+		QObject _lval;
+		
+		public LogicalSubscriptAssigner(QObject lexpr, QObject range) {
+			if(_lval.getLength() != _range.getLength())
+				throw new RuntimeException("logical subscript, not the same length with arg and lexpr");
+			_lval = lexpr;
+			_range = range;
+		}
+
+		public void assign(QObject rvalList) {
+			int rIndex = 0;
+			for(int i = 0; i < _range.getLength(); i++){
+				if(_range.get(i).isTrue())
+				{
+					if(rIndex >= rvalList.getLength())
+						throw new RuntimeException("logical subscript assign: rval length is not equal to logical true num");
+					_lval.set(i, rvalList.get(rIndex));
+					rIndex++;
+				}
+			}
+			if(rIndex != rvalList.getLength())
+				throw new RuntimeException("logical subscript assign: rval length is not equal to logical true num");			
+		}
+	}
+	
+	public class NumberSubscriptAssigner implements Assignable {
+		QObject _range;
+		QObject _lval;
+		
+		public NumberSubscriptAssigner(QObject lexpr, QObject range) {
+			_lval = lexpr;
+			_range = range;
+		}
+
+		public void assign(QObject rvalList) {
+			if(_range.getLength() != rvalList.getLength())
+				throw new RuntimeException("number subscript: assignment of lval and rval is not the same length.");
+			for(int i = 0; i < _range.getLength(); i++)
+			{
+				_lval.set(_range.get(i).getInt()-1, rvalList.get(i));
+			}
+		}
+	}
+	
+	private Assignable evalLexprForAssignSubscriptBracket(Tree term) {
+		QObject lexpr = evalExpr(term.getChild(1));
+		Tree sublistTree = term.getChild(2);
+		validateSubscriptBracket(sublistTree);
+		
+		QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
+		if(range.getMode() == "logical")
+			return new LogicalSubscriptAssigner(lexpr, range);
+		return new NumberSubscriptAssigner(lexpr, range);
+		
+	}
 
 	private QObject evalSubscriptBracket(Tree term) {
 		QObject lexpr = evalExpr(term.getChild(1));
 		Tree sublistTree = term.getChild(2);
-		if(sublistTree.getChildCount() > 1)
-			throw new RuntimeException("NYI: multi dimentional array");
-		if(sublistTree.getChild(0).getType() != QParser.XXSUB1)
-			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
+		validateSubscriptBracket(sublistTree);
 		QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
 		if(range.getMode() == "logical")
 			return subscriptByLogical(lexpr, range);
 		return subscriptByNumber(lexpr, range);
+	}
+
+	private void validateSubscriptBracket(Tree sublistTree) {
+		if(sublistTree.getChildCount() > 1)
+			throw new RuntimeException("NYI: multi dimentional array");
+		if(sublistTree.getChild(0).getType() != QParser.XXSUB1)
+			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
 	}
 	
 	private QObject subscriptByLogical(QObject lexpr, QObject range) {
@@ -436,11 +561,8 @@ public class QInterpreter {
 		if(QParser.LEFT_ASSIGN == op.getType() ||
 				QParser.EQ_ASSIGN == op.getType())
 		{
-			if(arg1.getType() != QParser.SYMBOL) {
-				debugPrint("lvalue not symbol, throw");
-				throw new RuntimeException("lvalue of assign is not SYMBOL, NYI");
-			}
-			_curEnv.put(arg1.getText(), evalExpr(arg2).QClone());
+			Assignable assignable = evalLexpr(arg1);
+			assignable.assign(evalExpr(arg2).QClone());
 			return QObject.Null;
 		}
 		QObject term1 = evalExpr(arg1);

@@ -57,6 +57,36 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_exprList() throws RecognitionException
+	{
+		int expected = 5;
+		QObject actual = callEvalExpr("{3; 5}");
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalExpr_forCond() throws RecognitionException
+	{
+		int expected = 10;
+
+		QObject actual = callEvalExpr("for(i in 1:10) a<-i ");
+
+		assertEquals(QObject.Null, actual);
+		assertQNumericEquals(expected, _intp._curEnv.get("a"));
+	}
+	
+	@Test
+	public void test_evalExpr_leftAssign_subscript() throws RecognitionException
+	{
+		callEvalExpr("a<-1");
+		callEvalExpr("a[1:3]<-10:12");
+		QObject actual = _intp._curEnv.get("a");
+		assertQNumericEquals(10, actual.get(0));
+		assertQNumericEquals(11, actual.get(1));
+		assertQNumericEquals(12, actual.get(2));
+	}
+	
+	@Test
 	public void test_evalExpr_dataFrame_subscript() throws RecognitionException
 	{
 		// setup
@@ -356,6 +386,14 @@ public class QInterpreterTest {
 	{
 		int expected = 5;
 		QObject actual = evalSimpleBinary("2+3");
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalBinary_modulo() throws RecognitionException
+	{
+		int expected = 1;
+		QObject actual = evalSimpleBinary("4%%3");
 		assertQNumericEquals(expected, actual);
 	}
 	

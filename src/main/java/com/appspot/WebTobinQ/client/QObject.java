@@ -194,6 +194,11 @@ public class QObject {
 		throw new RuntimeException("index of [[]] out of bound.");
 	}
 	
+	public boolean isTrue()
+	{
+		return !equals(QObject.FALSE);
+	}
+	
 	public QObject get(int i)
 	{
 		// atom

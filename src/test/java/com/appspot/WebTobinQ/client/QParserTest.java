@@ -13,6 +13,7 @@ import org.junit.Test;
 import com.appspot.WebTobinQ.client.QParser.expr_or_assign_return;
 import com.appspot.WebTobinQ.client.QParser.expr_return;
 import com.appspot.WebTobinQ.client.QParser.formlist_return;
+import com.appspot.WebTobinQ.client.QParser.lexpr_return;
 import com.appspot.WebTobinQ.client.QParser.prog_return;
 
 
@@ -52,6 +53,15 @@ public class QParserTest {
  	    CommonTree actual_tree = (CommonTree)actual.getTree();
 		return actual_tree;
 	}
+	
+	public static CommonTree parseLExpression(String code) throws RecognitionException {
+		QParser parser = createParser(code);
+		
+ 		lexpr_return actual = parser.lexpr();
+ 	    CommonTree actual_tree = (CommonTree)actual.getTree();
+		return actual_tree;
+	}
+
 	
 	public static CommonTree parseExpressionOrAssign(String code) throws RecognitionException {
 		QParser parser = createParser(code);
@@ -97,6 +107,14 @@ public class QParserTest {
 	{
 		System.out.println(tree.toStringTree());		
 	}
+	
+	@Test
+	public void test_lexpr_for() throws RecognitionException
+	{
+		CommonTree actual_tree = parseLExpression("for(i in 1:10){ b <- i*2; e <- i*13;}");
+		assertEquals("(XXFOR (XXFORCOND i (XXBINARY : 1 10)) (XXEXPRLIST (XXBINARY <- b (XXBINARY * i 2)) (XXBINARY <- e (XXBINARY * i 13))))", actual_tree.toStringTree());
+	}
+	
 	
 	@Test
 	public void test_expr_paren() throws RecognitionException
