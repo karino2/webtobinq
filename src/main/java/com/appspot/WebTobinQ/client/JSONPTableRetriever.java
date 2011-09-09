@@ -10,6 +10,7 @@ public class JSONPTableRetriever implements TableRetrievable {
 	public interface ResumeListener {
 		void onResume();
 		void onResumeFail(String message);
+		void notifyStatus(String message);
 	}
 
 	ResumeListener _listener;
@@ -43,14 +44,17 @@ public class JSONPTableRetriever implements TableRetrievable {
 		_prevArg = arg;
 		
 		 JsonpRequestBuilder requestBuilder = new JsonpRequestBuilder();
-		 requestBuilder.setTimeout(100000);
+		 requestBuilder.setTimeout(10000);
+		 _listener.notifyStatus("begin request...");
 		 requestBuilder.requestObject(builtUrl, new AsyncCallback<JSONTable.JSONNativeTable>() {
 
 			public void onFailure(Throwable caught) {
+				 _listener.notifyStatus("request failure.");				
 				_listener.onResumeFail(caught.toString());
 			}
 
 			public void onSuccess(JSONTable.JSONNativeTable result) {
+				 _listener.notifyStatus("request success.");
 				_table = new JSONTable(result);
 				_listener.onResume();
 			}
