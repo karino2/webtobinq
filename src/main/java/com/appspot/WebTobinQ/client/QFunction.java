@@ -98,17 +98,17 @@ public class QFunction extends QObject {
 	// "plot"
 	public static QObject createPlot(Plotable plotable) {
 		_plotable = plotable;
-		return new QFunction(parseFormalList("x, y, main=NULL, xlim=NULL, ylim=NULL"), null) {
+		return new QFunction(parseFormalList("x, y, main=NULL, xlim=NULL, ylim=NULL, type=\"p\""), null) {
 			public boolean isPrimitive() {return true; }
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
 				QObject x = funcEnv.get("x");
 				QObject y = funcEnv.get("y");
 				QObject ylim = funcEnv.get("ylim");
-				// String is NYI...
-				// QObject main = funcEnv.get("main");
+				QObject main = funcEnv.get("main");
 				if(x.getLength() != y.getLength())
 					throw new RuntimeException("x, y length differ");
+				_plotable.resetChart();
 				GChart chart = _plotable.getChart();
 				chart.clearCurves();
 				
@@ -121,17 +121,24 @@ public class QFunction extends QObject {
 					axis.setAxisMax(ylim.get(1).getDouble());
 				}
 
-				/*
 				if(main != QObject.Null)
 					chart.setChartTitle((String)main.getValue());
-					*/
+				
 			    chart.setChartSize(350, 250);
 			    chart.addCurve();
 				GChart.Curve curve = chart.getCurve();
 			    addPoints(x, y, curve);
 			    // chart.getCurve().setLegendLabel("x, y");
 			    chart.getXAxis().setAxisLabel("x");
+			    chart.getXAxis().setTickCount(9);
+			    chart.getXAxis().setTicksPerLabel(2);
 			    chart.getYAxis().setAxisLabel("y");
+
+			    QObject typ = funcEnv.get("type");
+			    if ((String)typ.getValue() == "o"  ||
+			    		(String)typ.getValue() == "l" ||
+			    		(String)typ.getValue() == "b")
+			    	curve.getSymbol().setSymbolType(GChart.SymbolType.LINE);
 			    
 			    _plotable.showChart();
 			    

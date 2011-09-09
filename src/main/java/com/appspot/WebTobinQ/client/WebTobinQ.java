@@ -45,16 +45,23 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
 	  _chart.update();
 	  _dialogBox.show();
   }
+  
+
+  VerticalPanel _chartHolder = null;
+  
 
 	private void initDialog() {
 		_dialogBox = new DialogBox();
+		_dialogBox.setModal(false);
 		_dialogBox.setText("Chart");
 		_dialogBox.setAnimationEnabled(true);
 		final Button closeButton = new Button("Close");
 		// We can set the id of a widget by accessing its Element
 		closeButton.getElement().setId("closeButton");
 		VerticalPanel dialogVPanel = new VerticalPanel();
-		dialogVPanel.add(getChart());
+		_chartHolder = new VerticalPanel();
+		_chartHolder.add(getChart());
+		dialogVPanel.add(_chartHolder);
 		dialogVPanel.addStyleName("dialogVPanel");
 		dialogVPanel.setHorizontalAlignment(VerticalPanel.ALIGN_LEFT);
 		dialogVPanel.add(closeButton);
@@ -155,6 +162,10 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
 			beg += 1;
 		return codes.substring(beg, end);
 	}
+	
+	public void notifyStatus(String message) {
+		_interpreter.debugPrint("<com>" + message);
+	}
 
 	public void onResume() {
 		try{
@@ -173,5 +184,14 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
 
 	public void onResumeFail(String message) {
 		_interpreter.println("JSONP error:" + message);
+	}
+
+	public void resetChart() {
+		GChart oldChart = _chart;
+		_chart = new GChart();
+		if(_chartHolder == null)
+			return;
+		_chartHolder.remove(oldChart);
+		_chartHolder.add(_chart);
 	}
 }
