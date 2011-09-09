@@ -13,7 +13,7 @@ public class TextAreaConsole implements Writable {
 	
 	public void write(CharSequence cs)
 	{
-		_textArea.setText(_textArea.getText() + cs);		
+		_textArea.setText(cs+_textArea.getText());		
 	}
 	
 	public void clear()
