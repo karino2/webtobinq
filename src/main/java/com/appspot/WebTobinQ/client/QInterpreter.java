@@ -461,6 +461,14 @@ public class QInterpreter {
 		{
 			return evalDivide(term1, term2);
 		}
+		else if("%%".equals(op.getText()))
+		{
+			return evalBinaryDouble(term1, term2, new doubleBinaryOperable() {
+				public QObject execute(double i, double j) {
+					return QObject.createNumeric(i%j);
+				}
+			});
+		}
 		else if(QParser.LE == op.getType())
 		{
 			return evalLE(term1, term2);
