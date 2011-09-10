@@ -188,7 +188,10 @@ public class QList extends QObject {
 		{
 			for(int col = 0; col < table.getColumnNum(); col++)
 			{
-				cols.get(col).get(0).set(row, QObject.createNumeric(table.getItemNumeric(row, col)));
+				if(table.isNA(row, col))
+					cols.get(col).get(0).set(row, QObject.NA);
+				else
+					cols.get(col).get(0).set(row, QObject.createNumeric(table.getItemNumeric(row, col)));
 			}
 		}
 	}

@@ -303,6 +303,11 @@ public class QTypesTest {
 			return _titles.length;
 		}
 		
+		public boolean isNA(int row,int col)
+		{
+			return false;
+		}
+		
 		public double getItemNumeric(int irow,int col)
 		{
 			Object[] row = (Object[])_data[irow];

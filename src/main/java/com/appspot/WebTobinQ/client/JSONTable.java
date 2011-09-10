@@ -12,6 +12,10 @@ public class JSONTable {
 		public final native double convertToDouble(JavaScriptObject jso) /*-{
 		   return jso;
 		}-*/;
+		
+		public final native boolean isNA(int row, int col) /*-{
+			return this.data[row][col] == "NA";
+		}-*/;
 	
 		public final native JsArrayString getTitles() /*-{
 			return this.titles;
@@ -45,6 +49,10 @@ public class JSONTable {
 		return _ntable.getTypes().get(col);
 	}
 
+	
+	public boolean isNA(int row, int col){
+		return _ntable.isNA(row, col);
+	}
 	public double getItemNumeric(int row, int col) {
 		JsArray<JavaScriptObject> rowAr = _ntable.getData().get(row);
 		double ret = ((JsArrayNumber)rowAr.cast()).get(col);

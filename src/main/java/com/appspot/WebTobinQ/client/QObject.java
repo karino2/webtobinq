@@ -59,6 +59,8 @@ public class QObject {
 	}
 	
 	public QObject QClone() {
+		if(this == QObject.NA)
+			return this;
 		if(getLength() == 1){
 			return new QObject(getMode(), _val, _attributes);
 		}
@@ -210,6 +212,8 @@ public class QObject {
 	}
 
 	public void set(int i, QObject qObject) {
+		if(this == QObject.NA)
+			return;
 		ensureVector();		
 		if(getLength() < i+1)
 		{
