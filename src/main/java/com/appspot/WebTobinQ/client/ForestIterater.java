@@ -2,64 +2,60 @@ package com.appspot.WebTobinQ.client;
 
 import java.util.Iterator;
 
-import org.antlr.runtime.tree.Tree;
-
 import com.appspot.WebTobinQ.client.ForestNode.Edge;
 
-public class ForestIterater implements Iterable<ForestNode>, Iterator<ForestNode>{
+public class ForestIterater<E> implements Iterable<ForestNode<E>>, Iterator<ForestNode<E>>{
 
-	Tree _root;
-	ForestNode _current;
+	ForestNode<E> _root;
+	ForestNode<E> _current;
 	
-	public ForestIterater(Tree root)
+	public ForestIterater(ForestNode<E> root)
 	{
 		_root = root;
-		_current = null;
 	}
-	
+		
 
-	public Iterator<ForestNode> iterator() {
+	public Iterator<ForestNode<E>> iterator() {
 		return this;
 	}
 
 	public boolean hasNext() {
 		return (_current == null) || !(_current.getEdge() == Edge.Trailing &&
-				_current.getElement() == _root);
+				_current.getElement() == _root.getElement());
 	}
 	
 	public void skipChildren()
 	{
-		_current = new ForestNode(Edge.Trailing, _current.getElement());
+		_current = _current.newEdge(Edge.Trailing);
 	}
 
-	public ForestNode next() {
+	public ForestNode<E> next() {
 		if(_current == null)
 		{
-			_current = new ForestNode(Edge.Leading, _root);
+			_current = _root.newEdge(Edge.Leading);
 			return _current;
 		}
-		Tree node = _current.getElement();
 		if(_current.getEdge() == Edge.Leading)
 		{
-			if(node.getChildCount() == 0)
+			if(_current.getChildCount() == 0)
 			{
-				_current = new ForestNode(Edge.Trailing, node);
+				_current = _current.newEdge(Edge.Trailing);
 				return _current;
 			}
-			_current = new ForestNode(Edge.Leading, node.getChild(0));
+			_current = _current.getChild(Edge.Leading, 0);
 			return _current;
 		}
-		Tree parent = node.getParent();
+		ForestNode<E> parent = _current.getParent(Edge.Trailing);
 		if(parent ==null)
-			throw new RuntimeException("No nexxt node, never reached here");
-		int curIndex = node.getChildIndex();
+			throw new RuntimeException("No next node, never reached here");
+		int curIndex = _current.getChildIndex();
 		if(curIndex < parent.getChildCount()-1)
 		{
-			_current = new ForestNode(Edge.Leading, parent.getChild(curIndex+1));
+			_current = parent.getChild(Edge.Leading, curIndex+1);
 			return _current;
 		}
 		// last sibling, go up ward.
-		_current = new ForestNode(Edge.Trailing, parent);
+		_current = parent;
 		return _current;
 	}
 

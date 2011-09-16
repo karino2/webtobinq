@@ -8,7 +8,7 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 import com.appspot.WebTobinQ.client.ForestNode.Edge;
-import com.gargoylesoftware.htmlunit.javascript.host.Range;
+import com.appspot.WebTobinQ.client.ForestNode.Traversable;
 
 public class QInterpreter {
 	
@@ -75,12 +75,36 @@ public class QInterpreter {
 		return ret;
 	}
 
+	public static ForestIterater<Tree> createIterater(Tree root)
+	{
+		ForestNode<Tree> rootNode = new ForestNode<Tree>(new Traversable<Tree>() {
+
+			public Tree getChild(Tree elem, int i) {
+				return elem.getChild(i);
+			}
+
+			public Tree getParent(Tree elem) {
+				return elem.getParent();
+			}
+
+			public int getChildCount(Tree elem) {
+				return elem.getChildCount();
+			}
+
+			public int getChildIndex(Tree elem) {
+				return elem.getChildIndex();
+			}
+			
+		}, ForestNode.Edge.Leading, root);
+		return new ForestIterater<Tree>(rootNode);
+	}
+	
 	QObject evalTree(Tree tree) {
 		QObject ret = null;
-		ForestIterater iter = new ForestIterater(tree);
+		ForestIterater<Tree> iter = createIterater(tree);
 		while(iter.hasNext())
 		{
-			ForestNode node = iter.next();
+			ForestNode<Tree> node = iter.next();
 			if(node.getEdge() == Edge.Trailing)
 				continue;
 			Tree t = node.getElement();
@@ -635,10 +659,10 @@ public class QInterpreter {
 	public QObject continueEval(Tree suspendedValue) {
 		boolean reached = false;
 		QObject ret = QObject.Null;
-		ForestIterater iter = new ForestIterater(_lastTree);
+		ForestIterater<Tree> iter = createIterater(_lastTree);
 		while(iter.hasNext())
 		{
-			ForestNode node = iter.next();
+			ForestNode<Tree> node = iter.next();
 			if(node.getEdge() == Edge.Trailing)
 				continue;
 			Tree t = node.getElement();

@@ -29,6 +29,12 @@ public class ForestIteraterTest {
 	{
 		return new TreeForTest(tag, new CommonToken(0, tag));
 	}
+
+	public ForestIterater<Tree> createIterater(Tree root)
+	{
+		return QInterpreter.createIterater(root);
+	}
+	
 	@Test
 	public void test_iterater()
 	{
@@ -48,7 +54,7 @@ public class ForestIteraterTest {
 		b.addChild(d);
 		b.addChild(e);
 		
-		ForestIterater iter = new ForestIterater(a);
+		ForestIterater<Tree> iter = createIterater(a);
 		
 		assertTrue(iter.hasNext());
 		assertNode(Edge.Leading, a, iter.next());
@@ -83,7 +89,7 @@ public class ForestIteraterTest {
 		assertFalse(iter.hasNext());
 	}
 	
-	void assertNode(Edge expectE, Tree expectNode, ForestNode actual)
+	void assertNode(Edge expectE, Tree expectNode, ForestNode<Tree> actual)
 	{
 		assertEquals(expectE, actual.getEdge());
 		assertEquals(expectNode, actual.getElement());
