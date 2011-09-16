@@ -263,6 +263,30 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_sum_flat() throws RecognitionException
+	{
+		int expected = 6;
+		QObject actual = callEvalExpr("sum(1, 2, 3)");
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalExpr_sum_oneArg() throws RecognitionException
+	{
+		int expected = 6;
+		QObject actual = callEvalExpr("sum(1:3)");
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_evalExpr_sum_nest() throws RecognitionException
+	{
+		int expected = 10;
+		QObject actual = callEvalExpr("sum(c(1, c(2, 3), 4))");
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
 	public void test_eval_mean()
 	{
 		int expected = 2;
@@ -446,7 +470,7 @@ public class QInterpreterTest {
 		assertQNumericEquals(5, actual.get(1));
 	}
 		
-	private static QObject createNumeric(int i) {
+	public static QObject createNumeric(int i) {
 		return QObject.createNumeric(i);
 	}
 

@@ -8,8 +8,11 @@ import static com.appspot.WebTobinQ.client.QObject.createCharacter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
+import javax.validation.constraints.AssertTrue;
+
 import org.junit.Test;
 
+import com.appspot.WebTobinQ.client.QFunction.QObjectForestAdapter;
 import com.appspot.WebTobinQ.client.TableRetrievable.RetrieveArgument;
 
 
@@ -485,5 +488,93 @@ public class QTypesTest {
 		RetrieveArgument arg1 = new RetrieveArgument(1980.0, 2000.0, 3);
 		RetrieveArgument arg2 = new RetrieveArgument(1980.0, 2000.0, 4);
 		assertNotSame(arg1, arg2);
+	}
+	
+	ForestNode<QObjectForestAdapter> nextWithTrailing(ForestIterater<QObjectForestAdapter> iter)
+	{
+		ForestNode<QObjectForestAdapter> node = iter.next();
+		while(node.getEdge() != ForestNode.Edge.Trailing)
+			node = iter.next();
+		return node;
+	}
+
+	QObject createNumeric(int i)
+	{
+		return QInterpreterTest.createNumeric(i);
+	}
+	
+	@Test
+	public void test_ForestIterater_flat()
+	{
+		QObject r2 = createNumeric(2);
+		QObject r3 = createNumeric(3);
+		
+		QObject r = createNumeric(1);
+		r.set(1, r2);
+		r.set(2, r3);
+
+		ForestIterater<QObjectForestAdapter> iter = QFunction.createForestIterater(r);
+		assertEquals(true, iter.hasNext());
+		
+		ForestNode<QObjectForestAdapter> node = nextWithTrailing(iter);
+		assertQNumericEquals(1, node.getElement()._self);
+		
+		assertEquals(true, iter.hasNext());
+		node = nextWithTrailing(iter);
+		assertQNumericEquals(2, node.getElement()._self);
+		
+		assertEquals(true, iter.hasNext());
+		node = nextWithTrailing(iter);
+		assertQNumericEquals(3, node.getElement()._self);
+		
+		// root remains
+		assertEquals(true, iter.hasNext());		
+		nextWithTrailing(iter);
+		
+		assertEquals(false, iter.hasNext());
+	}
+
+	@Test
+	public void test_ForestIterater_2level()
+	{
+		QObject r2 = createNumeric(2);
+		QObject r3 = createNumeric(3);
+		QObject r4 = createNumeric(4);
+		
+		QObject r = createNumeric(1);
+		r2.set(1, r4);
+		r.set(1, r2);
+		r.set(2, r3);
+		
+		// c(1, c(2, 4), 3)
+
+		ForestIterater<QObjectForestAdapter> iter = QFunction.createForestIterater(r);
+		assertEquals(true, iter.hasNext());
+		
+		ForestNode<QObjectForestAdapter> node = nextWithTrailing(iter);
+		assertQNumericEquals(1, node.getElement()._self);
+		
+		node = nextWithTrailing(iter);
+		assertQNumericEquals(2, node.getElement()._self);
+		
+		node = nextWithTrailing(iter);
+		assertQNumericEquals(4, node.getElement()._self);
+		
+		// skip trailing c(2, 4)
+		node = nextWithTrailing(iter);
+		
+		node = nextWithTrailing(iter);
+		assertQNumericEquals(3, node.getElement()._self);
+		
+		
+		// root remains
+		assertEquals(true, iter.hasNext());		
+		nextWithTrailing(iter);
+		
+		assertEquals(false, iter.hasNext());
+	}
+	
+	private void assertQNumericEquals(int expected, QObject actual) {
+		QInterpreterTest.assertQNumericEquals(expected, actual);		
 	}
 }

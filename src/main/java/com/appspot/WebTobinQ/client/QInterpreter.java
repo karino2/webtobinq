@@ -24,6 +24,7 @@ public class QInterpreter {
 		_curEnv.put("plot", QFunction.createPlot(_plotable));
 		_curEnv.put("lines", QFunction.createLines(_plotable));
 		_curEnv.put("mean", QFunction.createMean());
+		_curEnv.put("sum", QFunction.createSum());
 		_curEnv.put("length", QFunction.createLength());
 		_curEnv.put("var", QFunction.createVar());
 		_curEnv.put("sqrt", QFunction.createSqrt());
