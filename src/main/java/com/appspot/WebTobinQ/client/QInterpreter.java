@@ -185,6 +185,9 @@ public class QInterpreter {
 		// TODO: handle literal more seriously.
 		if(term.getType() == QParser.STR_CONST)
 			return QObject.createCharacter(term.getText().substring(1, term.getText().length()-1));
+		// 		// (XXDEFUN XXFORMALLIST (XXEXPRLIST 1 2))
+		if(term.getType() == QParser.XXDEFUN)
+			return new QFunction(term.getChild(0), term.getChild(1));
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
 	}
@@ -358,7 +361,7 @@ public class QInterpreter {
 				if(func.isPrimitive())
 					ret = func.callPrimitive(_curEnv, this);
 				else
-					ret = evalValue(func.getBody());
+					ret = evalExprList(func.getBody());
 			}
 			finally
 			{
@@ -370,7 +373,16 @@ public class QInterpreter {
 		_console.write("right value of func call is not function. After investigate exception, I'll handle.");
 		return QObject.Null;
 	}
-	
+		
+	// (XXEXPRLIST 1 2)
+	private QObject evalExprList(Tree body) {
+		QObject ret = QObject.Null;
+		for(int i = 0; i < body.getChildCount(); i++)
+		{
+			ret = evalExpr(body.getChild(i));
+		}
+		return ret;
+	}
 	public final String ARGNAME = "__arg__";
 	
 	// (XXSUBLIST (XXSUB1 1) (XXSYMSUB1 beg 4))

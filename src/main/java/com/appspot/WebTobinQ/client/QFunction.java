@@ -48,6 +48,11 @@ public class QFunction extends QObject {
 	{
 		return null;
 	}
+	
+	public QObject QClone() {
+		return this;
+	}
+
 
 	// "c"
 	public static QFunction createConcatinate()

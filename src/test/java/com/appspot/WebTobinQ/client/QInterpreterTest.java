@@ -51,6 +51,15 @@ public class QInterpreterTest {
 		assertEquals(expected, df.toString());
 	}
 	
+	@Test
+	public void test_eval_function()
+	{
+		int expected = 2;
+		// (XXDEFUN XXFORMALLIST (XXEXPRLIST 1 2))
+		QObject actual = _intp.eval("f <- function() { 1; 2}\nf()");
+		assertQNumericEquals(expected, actual);
+	}
+	
 	public static void assertQCharEquals(String expected, QObject actual)
 	{
 		assertEquals(QObject.createCharacter(expected), actual);

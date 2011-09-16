@@ -103,6 +103,13 @@ public class QParserTest {
 		assertEquals(3, actual_tree.getChildCount());
 	}
 	
+	@Test
+	public void test_expr_function() throws RecognitionException
+	{
+		CommonTree actual_tree = parseExpression("function(){1; 2}");
+		assertEquals("(XXDEFUN XXFORMALLIST (XXEXPRLIST 1 2))", actual_tree.toStringTree());
+	}
+	
 	public void debP(CommonTree tree)
 	{
 		System.out.println(tree.toStringTree());		
