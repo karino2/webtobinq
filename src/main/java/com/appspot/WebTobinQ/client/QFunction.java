@@ -272,6 +272,7 @@ public class QFunction extends QObject {
 		return new ForestIterater<QObjectForestAdapter>(root);
 	}
 
+	// sum
 	public static QFunction createSum()
 	{
 		return new QFunction(null, null){
@@ -298,6 +299,30 @@ public class QFunction extends QObject {
 		};
 	}
 
+	// cumsum
+	public static QFunction createCumulativeSum()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get(ARGNAME);
+				if(args.getLength() != 1)
+					throw new RuntimeException("Argument of cumsum should be 1");
+				QObjectBuilder bldr = new QObjectBuilder();
+				QObject arg = args.get(0);
+				int len = arg.getLength();
+				double cum = 0;
+				for(int i = 0; i < len; i++)
+				{
+					QObject obj = arg.get(i);
+					cum += obj.getDouble();
+					bldr.add(QObject.createNumeric(cum));
+				}
+				return bldr.result();				
+			}
+		};
+	}
 	
 	
 	public static QFunction createMean()

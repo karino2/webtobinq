@@ -287,6 +287,18 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_cumsum() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("cumsum(1:3)");
+		
+		assertEquals(3, actual.getLength());
+		assertQNumericEquals(1, actual.get(0));
+		assertQNumericEquals(3, actual.get(1));
+		assertQNumericEquals(6, actual.get(2));
+		
+	}
+	
+	@Test
 	public void test_eval_mean()
 	{
 		int expected = 2;

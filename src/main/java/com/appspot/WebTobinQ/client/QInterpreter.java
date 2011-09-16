@@ -25,6 +25,7 @@ public class QInterpreter {
 		_curEnv.put("lines", QFunction.createLines(_plotable));
 		_curEnv.put("mean", QFunction.createMean());
 		_curEnv.put("sum", QFunction.createSum());
+		_curEnv.put("cumsum", QFunction.createCumulativeSum());
 		_curEnv.put("length", QFunction.createLength());
 		_curEnv.put("var", QFunction.createVar());
 		_curEnv.put("sqrt", QFunction.createSqrt());
@@ -584,11 +585,31 @@ public class QInterpreter {
 		});
 	}
 
+	// <
+	QObject evalLT(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public QObject execute(double i, double j) {
+				return QObject.createLogical(i < j);
+			}
+			
+		});
+	}
+	
 	QObject evalGT(QObject arg1, QObject arg2)
 	{
 		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
 			public QObject execute(double i, double j) {
 				return QObject.createLogical(i > j);
+			}
+			
+		});
+	}
+	QObject evalGE(QObject arg1, QObject arg2)
+	{
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public QObject execute(double i, double j) {
+				return QObject.createLogical(i >= j);
 			}
 			
 		});
@@ -628,6 +649,10 @@ public class QInterpreter {
 				}
 			});
 		}
+		else if(QParser.LT == op.getType())
+		{
+			return evalLT(term1, term2);
+		}
 		else if(QParser.LE == op.getType())
 		{
 			return evalLE(term1, term2);
@@ -635,6 +660,10 @@ public class QInterpreter {
 		else if(QParser.GT == op.getType())
 		{
 			return evalGT(term1, term2);
+		}
+		else if(QParser.GE == op.getType())
+		{
+			return evalGE(term1, term2);
 		}
 		else if(":".equals(op.getText()))
 		{
