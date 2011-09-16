@@ -278,6 +278,7 @@ public class QInterpreterTest {
 		assertQNumericEquals(expected, actual);
 	}
 	
+	// this test was wrong meaning. But test itself is valid.
 	@Test
 	public void test_evalExpr_sum_nest() throws RecognitionException
 	{
@@ -335,6 +336,16 @@ public class QInterpreterTest {
 	public void test_evalExpr_concat() throws RecognitionException
 	{
 		QObject actual = callEvalExpr("c(1,2,3)");
+		assertEquals(3, actual.getLength());
+		assertEquals(1, actual.get(0).getInt());
+		assertEquals(2, actual.get(1).getInt());
+		assertEquals(3, actual.get(2).getInt());
+	}
+	
+	@Test
+	public void test_evalExpr_concat_nest() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("c(1,c(2,3))");
 		assertEquals(3, actual.getLength());
 		assertEquals(1, actual.get(0).getInt());
 		assertEquals(2, actual.get(1).getInt());

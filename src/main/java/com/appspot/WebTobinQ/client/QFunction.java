@@ -68,7 +68,16 @@ public class QFunction extends QObject {
 				for(int i = 0; i < args.getLength(); i++)
 				{
 					// should validate args here.
-					bldr.add(args.get(i));
+					QObject obj = args.get(i);
+					if(obj.getLength() == 1)
+						bldr.add(obj);
+					else
+					{
+						for(int j = 0; j < obj.getLength(); j++)
+						{
+							bldr.add(obj.get(j));
+						}
+					}
 				}
 				return bldr.result();
 				
