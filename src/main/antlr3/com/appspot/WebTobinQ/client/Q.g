@@ -125,7 +125,7 @@ lexpr : 	num_const
 	|	STR_CONST
 	|	NULL_CONST
 	|	SYMBOL
-	|	'{' expr_or_assign ((';' expr_or_assign?) | ('\n' expr_or_assign?))* '}'
+	|	'{' '\n'* expr_or_assign ((';' expr_or_assign?) | ('\n' expr_or_assign?))* '}'
 		-> ^(XXEXPRLIST expr_or_assign+)
 	|	'(' expr_or_assign ')'
 		-> ^(XXPAREN expr_or_assign)
@@ -150,11 +150,22 @@ lexpr : 	num_const
 	|	BREAK
 		-> ^(XXNXTBRK BREAK)
 	;
+
+additive_op
+	:('+'|'-')
+	;
+
+relationalOp
+	:
+	 (LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 )
+	;
+
+assign_op:
+	(LEFT_ASSIGN | RIGHT_ASSIGN)
+	;
 	
-binary_op
-	:(':'| '+'| '-'| '*' |  '/' | '^' | SPECIAL | '%' | '~' 
-			| '?' | LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 
-			| LEFT_ASSIGN | RIGHT_ASSIGN)
+multicative_op
+	:(':'| '*' |  '/' | '^' | SPECIAL | '%' | '~' | '?')
 	;
 
 refer	: (lexpr -> lexpr)
@@ -168,11 +179,33 @@ refer	: (lexpr -> lexpr)
 		  -> ^(XXBINARY '$'? '@'? lexpr symbol_or_conststr)
 	    )?
 	  ;
+
+additiveExpression
+    :   (multiplicativeExpression -> multiplicativeExpression)
+	 ( additive_op additiveExpression
+		  -> ^(XXBINARY additive_op multiplicativeExpression additiveExpression)
+	 )?
+    ;
+
+multiplicativeExpression
+    :   (refer -> refer)
+	  (
+		multicative_op multiplicativeExpression
+		  -> ^(XXBINARY multicative_op refer multiplicativeExpression)
+	  )?
+    ;
+
+relationalExpression
+    :   (additiveExpression -> additiveExpression)
+	 ( relationalOp relationalExpression
+		  -> ^(XXBINARY relationalOp additiveExpression relationalExpression)
+	)?
+    ;
 	  
-expr	: (refer ->refer)
+expr	: (relationalExpression ->relationalExpression)
 	    (
-		binary_op expr
-		  -> ^(XXBINARY binary_op refer expr)
+		assign_op expr
+		  -> ^(XXBINARY assign_op relationalExpression expr)
 	    )?
 	;
 

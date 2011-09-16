@@ -353,6 +353,15 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_priority() throws RecognitionException
+	{
+		int expected = 7;
+		QObject actual = callEvalExpr("2*3+1");
+		assertQNumericEquals(expected, actual);
+		
+	}
+	
+	@Test
 	public void test_evalExpr_subscript_two() throws RecognitionException
 	{
 		QObject q2 = createNumeric(2);

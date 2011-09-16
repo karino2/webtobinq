@@ -110,6 +110,14 @@ public class QParserTest {
 		assertEquals("(XXDEFUN XXFORMALLIST (XXEXPRLIST 1 2))", actual_tree.toStringTree());
 	}
 	
+	@Test
+	public void test_expr_function_newline() throws RecognitionException
+	{
+		CommonTree expect_tree = parseExpression("function(){1; 2}");
+		CommonTree actual_tree = parseExpression("function(){\n1; 2}");
+		assertEquals(expect_tree.toStringTree(), actual_tree.toStringTree());
+	}
+	
 	public void debP(CommonTree tree)
 	{
 		System.out.println(tree.toStringTree());		
