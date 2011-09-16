@@ -8,6 +8,8 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 
+import com.appspot.WebTobinQ.client.ForestNode.Edge;
+import com.appspot.WebTobinQ.client.ForestNode.Traversable;
 import com.appspot.WebTobinQ.client.TableRetrievable.RetrieveArgument;
 import com.googlecode.gchart.client.GChart;
 import com.googlecode.gchart.client.GChart.Axis;
@@ -217,6 +219,80 @@ public class QFunction extends QObject {
 				}
 				var = var/(len-1);
 				return QObject.createNumeric(var);
+				
+			}
+		};
+	}
+	
+	public static class QObjectForestAdapter {
+		QObjectForestAdapter _parent;
+		QObject _self;
+		int _childIndex;
+		public QObjectForestAdapter(QObjectForestAdapter parent, QObject slf, int childIndex) {
+			_parent = parent;
+			_self = slf;
+			_childIndex = childIndex;
+		}
+		public QObjectForestAdapter getParent()
+		{
+			return _parent;
+		}
+	}
+	
+	public static ForestIterater<QObjectForestAdapter> createForestIterater(QObject rootObj) {
+		QObjectForestAdapter rootAda = new QObjectForestAdapter(null, rootObj, 0);
+		ForestNode<QObjectForestAdapter> root = new ForestNode<QObjectForestAdapter>(new Traversable<QObjectForestAdapter>(){
+
+			public QObjectForestAdapter getChild(QObjectForestAdapter elem,
+					int i) {
+				// this is not child for some case. but I guess it's ok for this case.
+				QObject child = elem._self.get(i);
+				return new QObjectForestAdapter(elem, child, i);
+			}
+
+			public QObjectForestAdapter getParent(QObjectForestAdapter elem) {
+				return elem.getParent();
+			}
+
+			public int getChildCount(QObjectForestAdapter elem) {
+				QObject obj = elem._self;
+				if(obj.getMode() == QList.LIST_TYPE)
+					return obj.getLength();
+				// in this case, obj is leaf
+				if(obj.getLength() == 1)
+					return 0;
+				return obj.getLength();
+			}
+
+			public int getChildIndex(QObjectForestAdapter elem) {
+				return elem._childIndex;
+			}
+			
+		}, ForestNode.Edge.Leading, rootAda);
+		return new ForestIterater<QObjectForestAdapter>(root);
+	}
+
+	public static QFunction createSum()
+	{
+		return new QFunction(null, null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject args = funcEnv.get(ARGNAME);
+				double sum = 0;
+				ForestIterater<QObjectForestAdapter> iter = createForestIterater(args);
+				while(iter.hasNext())
+				{
+					ForestNode<QObjectForestAdapter> node = iter.next();
+					if(node.getEdge() != Edge.Trailing)
+						continue;
+					QObject obj = node.getElement()._self;
+					if(obj.getLength() != 1 ||
+							obj.getMode() == QList.LIST_TYPE)
+						continue;
+					sum += obj.getDouble();
+				}
+				return QObject.createNumeric(sum);
 				
 			}
 		};
