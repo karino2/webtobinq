@@ -2,13 +2,12 @@ package com.appspot.WebTobinQ.client;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotSame;
-import static com.appspot.WebTobinQ.client.QObject.createNumeric;
 import static com.appspot.WebTobinQ.client.QObject.createCharacter;
+import static com.appspot.WebTobinQ.client.QInterpreterTest.assertQCharEquals;
+import static com.appspot.WebTobinQ.client.QInterpreterTest.assertQNumericEquals;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-
-import javax.validation.constraints.AssertTrue;
 
 import org.junit.Test;
 
@@ -165,8 +164,18 @@ public class QTypesTest {
 		QObject y = createVector12("y");
 		args.set(0, x);
 		args.set(1, y);		
-		
 		assertEquals("[[1]]\n[1] 1.0 2.0\n\n[[2]]\n[1] 1.0 2.0\n\n", args.toString());
+		
+	}
+	
+	@Test
+	public void test_list_toString_withNames()
+	{
+		QObject args = QList.createList();
+		QObject x = createVector12("x");
+		args.set(0, x);
+		args.setAttribute("names", QObject.createCharacter("hoge"));
+		assertEquals("$hoge\n[1] 1.0 2.0\n\n", args.toString());
 		
 	}
 	
@@ -344,7 +353,28 @@ public class QTypesTest {
 		QList df = QList.createDataFrameFromJSONTable(jt);
 		assertEquals("  日付     GDP      消費      \n1 1980.0 312712.7 174382.7\n2 1981.0 321490.5 177074.9\n", df.toString());
 	}
+	
+	@Test
+	public void test_attributesAsList_null()
+	{
+		QObject i = QObject.createNumeric(0);
+		QObject actual = i.attributesAsList();
 
+		assertEquals(true, actual.isNull());
+	}
+
+	@Test
+	public void test_attributesAsList_oneAttr()
+	{
+		QObject i = QObject.createNumeric(0);
+		i.setAttribute("hoge", QObject.createCharacter("ika"));
+		
+		QObject actual = i.attributesAsList();
+		assertEquals(1, actual.getLength());
+		assertEquals("list", actual.getMode());
+		assertQCharEquals("ika", actual.getBB(QObject.createCharacter("hoge")));
+	}
+	
 	// --------- other misc test -------------
 	@Test
 	public void test_getCurrentLine_onlyOneLine_center()
@@ -574,7 +604,4 @@ public class QTypesTest {
 		assertEquals(false, iter.hasNext());
 	}
 	
-	private void assertQNumericEquals(int expected, QObject actual) {
-		QInterpreterTest.assertQNumericEquals(expected, actual);		
-	}
 }

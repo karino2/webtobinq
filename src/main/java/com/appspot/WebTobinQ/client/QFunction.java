@@ -459,6 +459,24 @@ public class QFunction extends QObject {
 			
 		};
 	}
+	
+	// attributes
+	public static QFunction createAttributes()
+	{
+		return new QFunction(parseFormalList("obj"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get("obj");
+				if(arg.isNull())
+					throw new RuntimeException("Argument of attributes should be one object");
+				return arg.attributesAsList();
+				
+			}
+		};
+	}
+
+	
 	public String toString()
 	{
 		return "function ...";

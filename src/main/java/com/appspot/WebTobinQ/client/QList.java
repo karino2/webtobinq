@@ -81,8 +81,8 @@ public class QList extends QObject {
 	{
 		QObject names = getAttribute("names");
 		if(names.isNull())
-			return String.valueOf(i+1);
-		return (String)names.get(i).getValue();
+			return "[[" + String.valueOf(i+1) + "]]";
+		return "$" + (String)names.get(i).getValue();
 	}
 	
 	private String toStringList() {
@@ -90,9 +90,8 @@ public class QList extends QObject {
 		StringBuffer buf = new StringBuffer();
 		for(int i = 0; i < getLength(); i++)
 		{
-			buf.append("[[");
 			buf.append(getNameOfIndex(i));
-			buf.append("]]\n");
+			buf.append("\n");
 			buf.append("[1] ");
 			buf.append(get(i).toString());
 			buf.append("\n\n");

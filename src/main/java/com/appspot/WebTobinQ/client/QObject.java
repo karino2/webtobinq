@@ -2,6 +2,7 @@ package com.appspot.WebTobinQ.client;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class QObject {
 	// typename
@@ -307,5 +308,22 @@ public class QObject {
 		if(b)
 			return TRUE.QClone();
 		return FALSE.QClone();
+	}
+
+	// current implementation is read only.
+	public QObject attributesAsList() {
+		if(_attributes == null)
+			return QObject.Null;
+		QList list = QList.createList(); 
+		QObject names = QObject.createCharacter("");
+		int i = 0;
+		for(Map.Entry<String, QObject> entry : _attributes.entrySet())
+		{
+			names.set(i, QObject.createCharacter(entry.getKey()));
+			list.set(i, entry.getValue());
+			i++;
+		}
+		list.setAttribute("names", names);
+		return list;
 	}
 }

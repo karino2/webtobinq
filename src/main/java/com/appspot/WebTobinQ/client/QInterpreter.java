@@ -32,6 +32,7 @@ public class QInterpreter {
 		_curEnv.put("data.frame", QFunction.createDataFrame());
 		_curEnv.put("list", QFunction.createList());
 		_curEnv.put("read.server", QFunction.createReadServer(_retrievable));
+		_curEnv.put("attributes", QFunction.createAttributes());
 	}
 	
 	public QInterpreter(Writable console) {
