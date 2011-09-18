@@ -201,6 +201,11 @@ public class QObject {
 		return !equals(QObject.FALSE);
 	}
 	
+	public boolean isNull()
+	{
+		return this == QObject.Null;
+	}
+	
 	public QObject get(int i)
 	{
 		// atom

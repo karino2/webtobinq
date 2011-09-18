@@ -77,12 +77,22 @@ public class QList extends QObject {
 		return toStringList();
 	}
 	
+	public String getNameOfIndex(int i)
+	{
+		QObject names = getAttribute("names");
+		if(names.isNull())
+			return String.valueOf(i+1);
+		return (String)names.get(i).getValue();
+	}
+	
 	private String toStringList() {
 		// nest of list does not handle properly.
 		StringBuffer buf = new StringBuffer();
 		for(int i = 0; i < getLength(); i++)
 		{
-			buf.append("[[" + (i+1) + "]]\n");
+			buf.append("[[");
+			buf.append(getNameOfIndex(i));
+			buf.append("]]\n");
 			buf.append("[1] ");
 			buf.append(get(i).toString());
 			buf.append("\n\n");
