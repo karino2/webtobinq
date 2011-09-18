@@ -203,7 +203,7 @@ public class QObject {
 	
 	public boolean isNull()
 	{
-		return this == QObject.Null;
+		return QObject.Null.equals(this);		
 	}
 	
 	public QObject get(int i)
