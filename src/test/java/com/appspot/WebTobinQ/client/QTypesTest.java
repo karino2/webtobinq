@@ -223,14 +223,59 @@ public class QTypesTest {
 	
 	@Test
 	public void test_dataFrameFromVector_contents_row1() {
-		QObject args = QList.createList();
 		QObject x = createVector12("x");
 		QObject y = createVector12("y");
+		QList df = createDataFrame(x, y);
+		
+		assertEquals(y, df.getBBInt(1));
+	}
+
+	private QList createDataFrame(QObject x, QObject y) {
+		QObject args = QList.createList();
 		args.set(0, x);
 		args.set(1, y);		
 		QList df = QList.createDataFrameFromVector(args);
+		return df;
+	}
+	
+	@Test
+	public void test_dataFrame_subscriptByRow() {
+		/*   x y
+		 * 1 1 1
+		 * 2 2 2
+		 * 3 3 3
+		 */
+		QList df = create123x123DataFrame();
 		
-		assertEquals(y, df.getBBInt(1));
+		// 0 indexed in Java layer. df[2,]
+		QList actual = (QList)df.subscriptByRowIndex(1);
+		assertEquals(2, actual.getLength());
+		assertQNumericEquals(2, actual.getBBInt(0));
+		assertQNumericEquals(2, actual.getBBInt(1));	
+	}
+
+	private QList create123x123DataFrame() {
+		QObject x = createVector123("x");
+		QObject y = createVector123("y");
+		QList df = createDataFrame(x, y);
+		return df;
+	}
+	
+	@Test
+	public void test_dataFrame_subscriptByCol() {
+		/*   x y
+		 * 1 1 1
+		 * 2 2 2
+		 * 3 3 3
+		 */
+		QList df = create123x123DataFrame();
+		
+		// 0 indexed in Java layer.
+		QObject actual = df.subscriptByCol(1);
+		assertEquals(3, actual.getLength());
+		assertQNumericEquals(1, actual.get(0));
+		assertQNumericEquals(2, actual.get(1));	
+		assertQNumericEquals(3, actual.get(2));	
 	}
 	
 	@Test
@@ -278,6 +323,12 @@ public class QTypesTest {
 		QObject x = QObject.createNumeric(1);
 		x.set(1, QObject.createNumeric(2));
 		x.setAttribute("names", QObject.createCharacter(name));
+		return x;
+	}
+	
+	private QObject createVector123(String name) {
+		QObject x = createVector12(name);
+		x.set(2, QObject.createNumeric(3));
 		return x;
 	}
 	

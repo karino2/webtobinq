@@ -317,6 +317,8 @@ public class QInterpreter {
 		QObject lexpr = evalExpr(term.getChild(1));
 		Tree sublistTree = term.getChild(2);
 		validateSubscriptBracket(sublistTree);
+		if(sublistTree.getChildCount() > 1)
+			throw new RuntimeException("NYI: assigment with multi dimensional subscript");
 		
 		QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
 		if(range.getMode() == "logical")
@@ -329,15 +331,43 @@ public class QInterpreter {
 		QObject lexpr = evalExpr(term.getChild(1));
 		Tree sublistTree = term.getChild(2);
 		validateSubscriptBracket(sublistTree);
-		QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
-		if(range.getMode() == "logical")
-			return subscriptByLogical(lexpr, range);
-		return subscriptByNumber(lexpr, range);
+		if(sublistTree.getChildCount() == 1)
+		{
+			QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
+			if(range.getMode() == "logical")
+				return subscriptByLogical(lexpr, range);
+			return subscriptByNumber(lexpr, range);
+		}
+		else // sublistTree.getChildCount() == 2
+		{
+			Tree rangeRowNode = sublistTree.getChild(0);
+			Tree rangeColNode = sublistTree.getChild(1);
+			
+			// a[1,] 
+			// -> "(XXSUBSCRIPT [ a (XXSUBLIST (XXSUB1 1) XXSUB0))"
+			if(rangeRowNode.getType() != QParser.XXSUB0 
+					&& rangeColNode.getType() == QParser.XXSUB0)
+			{
+				QObject rangeRow = evalExpr(rangeRowNode.getChild(0));
+				if(rangeRow.getMode() == "logical")
+					throw new RuntimeException("NYI: multi dimensional subscript with logical array");
+				return subscriptByRowNumber(lexpr, rangeRow);
+			}
+			// other case, NYI.
+			throw new RuntimeException("NYI: multi dimensional subscript");
+		}
+	}
+
+	private QObject subscriptByRowNumber(QObject lexpr, QObject rangeRow) {
+		if(!lexpr.isDataFrame())
+			throw new RuntimeException("NYI: multi dimensional subscript for none data frame");
+		QList df = (QList) lexpr;
+		return df.subscriptByRow(rangeRow);
 	}
 
 	private void validateSubscriptBracket(Tree sublistTree) {
-		if(sublistTree.getChildCount() > 1)
-			throw new RuntimeException("NYI: multi dimentional array");
+		if(sublistTree.getChildCount() > 2)
+			throw new RuntimeException("NYI: multi dimentional array more than 2");
 		if(sublistTree.getChild(0).getType() != QParser.XXSUB1)
 			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
 	}

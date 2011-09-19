@@ -112,6 +112,59 @@ public class QInterpreterTest {
 		
 		assertNotNull(actual.toString());
 	}
+	
+	@Test
+	public void test_evalExpr_dataFrame_subscript_multiDimension_row() throws RecognitionException
+	{
+		/*
+		 *  x y
+		 *  1 4
+		 *  2 5
+		 *  3 6
+		 */
+		// setup
+		callEvalExpr("x<-1:3");
+		callEvalExpr("y<-4:6");
+		callEvalExpr("df<-data.frame(x, y)");
+
+		QObject actual_obj = callSubscript("df[2,]");
+		
+		assertEquals("data.frame", actual_obj.getQClass());
+		QList actual = (QList) actual_obj;
+		assertEquals(2, actual.getLength());
+		assertQNumericEquals(2, actual.getBBInt(0));
+		assertQNumericEquals(5, actual.getBBInt(1));
+	}
+	
+	@Test
+	public void test_evalExpr_dataFrame_subscript_multiDimension_multirow() throws RecognitionException
+	{
+		/*
+		 *  x y
+		 *  1 4
+		 *  2 5
+		 *  3 6
+		 */
+		// setup
+		callEvalExpr("x<-1:3");
+		callEvalExpr("y<-4:6");
+		callEvalExpr("df<-data.frame(x, y)");
+
+		QObject actual_obj = callSubscript("df[2:3,]");
+		
+		assertEquals("data.frame", actual_obj.getQClass());
+		QList actual = (QList) actual_obj;
+		assertEquals(2, actual.getLength());
+		QObject xcol = actual.getBBInt(0);
+		assertEquals(2, xcol.getLength());
+		assertQNumericEquals(2, xcol.get(0));
+		assertQNumericEquals(3, xcol.get(1));
+		
+		QObject ycol = actual.getBBInt(1);
+		assertEquals(2, ycol.getLength());
+		assertQNumericEquals(5, ycol.get(0));
+		assertQNumericEquals(6, ycol.get(1));
+	}
 
 	private QObject callSubscript(String code) throws RecognitionException {
 		Tree tree = parseExpression(code);

@@ -5,6 +5,7 @@ import java.util.HashMap;
 
 public class QList extends QObject {
 	public static final String LIST_TYPE = "list";
+	public static final String DATAFRAME_CLASS = "data.frame";
 
 	public QList() {
 		this(null);
@@ -17,7 +18,7 @@ public class QList extends QObject {
 	public void set(int i, QObject qObject) {
 		if(getLength() < i+1)
 			extendVectorAndFillValue(i+1, QObject.Null);
-		_vector.set(i, qObject.QClone());
+		_vector.set(i, qObject);
 	}
 	
 	public QObject getBBInt(int i)
@@ -40,7 +41,7 @@ public class QList extends QObject {
 	}
 	
 	private int getIndex(String colName) {
-		QObject names = getAttribute("names");
+		QObject names = getNamesAttr();
 		for(int i = 0; i < names.getLength(); i++)
 		{
 			QObject name = names.get(i);
@@ -49,6 +50,27 @@ public class QList extends QObject {
 		}
 		throw new RuntimeException("Arg of [[]] does not match to names: " + colName);
 	}
+	
+	private QObject getName(int colIndex) {
+		return getNamesAttr().get(colIndex);
+	}
+	
+	private QObject getNamesAttr() {
+		return getAttribute("names");
+	}
+	private void setNamesAttr(QObject namesObj)
+	{
+		setAttribute("names", namesObj);		
+	}
+	private QObject getRowNamesAttr() {
+		QObject rowNames = getAttribute("row.names");
+		return rowNames;
+	}
+	private void setRowNamesAttr(QObject rowNames) {
+		setAttribute("row.names", rowNames);
+	}
+
+	
 	public QObject get(int i)
 	{
 		if(_vector.size() > i)
@@ -79,7 +101,7 @@ public class QList extends QObject {
 	
 	public String getNameOfIndex(int i)
 	{
-		QObject names = getAttribute("names");
+		QObject names = getNamesAttr();
 		if(names.isNull())
 			return "[[" + String.valueOf(i+1) + "]]";
 		return "$" + (String)names.get(i).getValue();
@@ -103,7 +125,7 @@ public class QList extends QObject {
 	public static QList createDataFrame()
 	{
 		QList df = new QList();
-		df.setAttribute("class", QObject.createCharacter("data.frame"));
+		df.setAttribute("class", QObject.createCharacter(DATAFRAME_CLASS));
 		return df;
 	}
 	
@@ -115,8 +137,8 @@ public class QList extends QObject {
 	
 	// slow...
 	private String toStringDataFrame() {
-		QObject rowNames = getAttribute("row.names");
-		QObject names = getAttribute("names");
+		QObject rowNames = getRowNamesAttr();
+		QObject names = getNamesAttr();
 		
 		ArrayList<Integer> colMaxLength = new ArrayList<Integer>();
 		colMaxLength.add(0,maxStrLength(rowNames));
@@ -145,8 +167,11 @@ public class QList extends QObject {
 			appendSpace(buf, colMaxLength.get(0) - rowName.length());
 			for(int j = 0; j < getLength(); j++) {
 				buf.append(" ");
+				/*
 				QObject dfSub = get(j);
 				String val = dfSub.get(0).get(i).toString();
+				*/
+				String val = rawGetByRowCol(i, j).toString();
 				buf.append(val);
 				appendSpace(buf, colMaxLength.get(j+1) - val.length());
 			}
@@ -154,7 +179,6 @@ public class QList extends QObject {
 		}
 		return buf.toString();
 	}
-
 	private void appendSpace(StringBuffer buf, int maxRowLength) {
 		for(int i = 0; i < maxRowLength; i++)
 			buf.append(" ");
@@ -174,13 +198,13 @@ public class QList extends QObject {
 	public static QList createDataFrameFromJSONTable(JSONTable table) {
 		QList ret = createDataFrame();
 		QObject rowNames = defaultRowNames(table.getRowNum());
-		ret.setAttribute("row.names", rowNames);
+		ret.setRowNamesAttr(rowNames);
 		
 		ArrayList<QList> cols = new ArrayList<QList>();
 		QObjectBuilder nameBldr = new QObjectBuilder();
 		
 		setupColsNames(table, rowNames, cols, nameBldr);
-		ret.setAttribute("names", nameBldr.result());
+		ret.setNamesAttr(nameBldr.result());
 		
 		copyDatas(table, cols);
 		
@@ -192,15 +216,17 @@ public class QList extends QObject {
 		return ret;
 	}
 	
+	
+	
 	private static void copyDatas(JSONTable table, ArrayList<QList> cols) {
 		for(int row = 0; row < table.getRowNum(); row++)
 		{
 			for(int col = 0; col < table.getColumnNum(); col++)
 			{
 				if(table.isNA(row, col))
-					cols.get(col).get(0).set(row, QObject.NA);
+					cols.get(col).rawSetByRowCol(row, 0, QObject.NA);
 				else
-					cols.get(col).get(0).set(row, QObject.createNumeric(table.getItemNumeric(row, col)));
+					cols.get(col).rawSetByRowCol(row, 0, QObject.createNumeric(table.getItemNumeric(row, col)));
 			}
 		}
 	}
@@ -215,13 +241,13 @@ public class QList extends QObject {
 			name = QObject.createCharacter(table.getTitle(i));
 	
 			nameBldr.add(name);
-			col.setAttribute("names", name);
-			col.setAttribute("row.names", rowNames);
+			col.setNamesAttr(name);
+			col.setRowNamesAttr(rowNames);
 			cols.add(col);
 		}
 	}
-	protected static QObject copyAsDataFrame(QObject o) {
-		QObject df = createDataFrame();
+	protected static QList copyVectorAsDataFrame(QObject o) {
+		QList df = createDataFrame();
 		QObjectBuilder bldr = new QObjectBuilder();
 		for(int i = 0; i < o.getLength(); i++)
 			bldr.add(o.get(i).QClone()); //TODO: remove clone.
@@ -253,13 +279,13 @@ public class QList extends QObject {
 		QList ret = createDataFrame();
 		
 		QObject rowNames = rowNames(args);
-		ret.setAttribute("row.names", rowNames);		
+		ret.setRowNamesAttr(rowNames);		
 		
 		QObjectBuilder nameBldr = new QObjectBuilder();
 		for(int i = 0; i < args.getLength(); i++)
 		{
 			QObject o = args.get(i);
-			QObject df = QList.copyAsDataFrame(o);
+			QList df = QList.copyVectorAsDataFrame(o);
 	
 			QObject name = null;
 			if(QObject.Null.equals(o.getAttribute("names")))
@@ -268,12 +294,12 @@ public class QList extends QObject {
 				name = o.getAttribute("names");
 	
 			nameBldr.add(name);
-			df.setAttribute("names", name);
-			df.setAttribute("row.names", rowNames);
+			df.setNamesAttr(name);
+			df.setRowNamesAttr(rowNames);
 			// inside set, df is copied. so you must call here.
 			ret.set(i, df);
 		}
-		ret.setAttribute("names", nameBldr.result());
+		ret.setNamesAttr(nameBldr.result());
 		return ret;
 	}
 	
@@ -288,5 +314,90 @@ public class QList extends QObject {
 				throw new RuntimeException("data.frame arg length mismatch: 0's=" + len + ", " + i + "'s=" + args.get(i).getLength());
 			}
 		}
+	}
+
+	public QList dupBaseDataFrame() {
+		QList df = QList.createDataFrame();
+		df.setNamesAttr(getNamesAttr().QClone());
+		for(int col = 0; col < getLength(); col++) {
+			df.addDataFrameColumn(col);
+		}
+		return df;
+	}
+	
+	// get is too generic and hard to understand code.
+	public QList getColumn(int colIndex) {
+		return (QList)get(colIndex);
+	}
+	
+	public void setRowName(int rowIndex, QObject name)
+	{
+		getRowNamesAttr().set(rowIndex, name);
+	}
+	
+	public QObject getRowName(int rowIndex)
+	{
+		return getRowNamesAttr().get(rowIndex);
+	}
+	
+	public QObject subscriptByRowIndex(int rowIndex) {
+		QList df = dupBaseDataFrame();
+		df.setRowName(0, getRowName(rowIndex).QClone());
+		
+		for(int col = 0; col < getLength(); col++) {
+			QObject colVector = getBBInt(col);
+			df.getColumn(col).set(0, colVector.get(rowIndex));
+		}
+		return df;
+	}
+
+	private QList addDataFrameColumn(int colIndex) {
+		QList col = QList.createDataFrame();
+		col.setNamesAttr(getName(colIndex));
+		set(colIndex, col);
+		return col;
+	}
+	public QObject subscriptByCol(int i) {
+		return getBBInt(i);
+	}
+	
+	QObject rawGetByRowCol(int row, int col)
+	{
+		return get(col).get(0).get(row);
+	}
+	void rawSetByRowCol(int row, int col, QObject obj)
+	{
+		// column of data.frame is also data.frame.
+		// So subscription never reached to contents.
+		// But as a implementation point of view, some kind of bootstrap is necessary.
+		// I use partial data.frame for column, that is, contents of first element is vector.
+		// So here is one those kind of special handling.
+		if(row == 0 && col == 0)
+			set(0, obj);
+		else
+			get(col).get(0).set(row, obj);		
+	}
+	
+	QObject subscriptByRow(QObject rowRange) {
+		if(rowRange.getLength () == 1)
+		{
+			int  index = rowRange.getInt();
+			return subscriptByRowIndex(index-1);
+		}
+		QList df = dupBaseDataFrame();
+		
+		for(int newRowIndex = 0; newRowIndex < rowRange.getLength(); newRowIndex++)
+		{
+			int orgRowIndex = rowRange.get(newRowIndex).getInt() -1;
+			df.setRowName(newRowIndex, getRowName(orgRowIndex));
+			QList row = (QList)subscriptByRowIndex(orgRowIndex);
+			for(int col = 0; col < getLength(); col++)
+			{
+				QList columnDf = df.getColumn(col);
+				columnDf.setRowName(newRowIndex, getRowName(orgRowIndex));
+				columnDf.rawSetByRowCol(newRowIndex, 0, row.rawGetByRowCol(0, col));
+			}
+		}
+		return df;
 	}
 }

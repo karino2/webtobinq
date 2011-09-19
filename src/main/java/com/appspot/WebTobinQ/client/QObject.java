@@ -228,10 +228,10 @@ public class QObject {
 		if(i == 0) {
 			// something strange.
 			_val = qObject._val;
-			_vector.set(i, qObject.QClone());
+			_vector.set(i, qObject);
 		}
 		else
-			_vector.set(i, qObject.QClone());		
+			_vector.set(i, qObject);		
 	}
 
 	public void extendVectorAndFillNA(int upto) {
@@ -325,5 +325,10 @@ public class QObject {
 		}
 		list.setAttribute("names", names);
 		return list;
+	}
+
+	boolean isDataFrame() {
+		return QList.LIST_TYPE.equals(getMode()) &&
+			QList.DATAFRAME_CLASS.equals(getQClass());
 	}
 }
