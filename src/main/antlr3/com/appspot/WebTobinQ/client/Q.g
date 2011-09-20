@@ -170,14 +170,14 @@ multicative_op
 
 refer	: (lexpr -> lexpr)
 	    ('(' sublist ')'
-		  -> ^(XXFUNCALL lexpr sublist)
+		  -> ^(XXFUNCALL $refer sublist)
 		| LBB sublist ']' ']'
-		  -> ^(XXSUBSCRIPT LBB lexpr sublist)
+		  -> ^(XXSUBSCRIPT LBB $refer sublist)
 		| '[' sublist  ']'
-		  -> ^(XXSUBSCRIPT '[' lexpr sublist)
+		  -> ^(XXSUBSCRIPT '[' $refer sublist)
 		| ('$' | '@') symbol_or_conststr
-		  -> ^(XXBINARY '$'? '@'? lexpr symbol_or_conststr)
-	    )?
+		  -> ^(XXBINARY '$'? '@'? $refer symbol_or_conststr)
+	    )*
 	  ;
 
 additiveExpression
