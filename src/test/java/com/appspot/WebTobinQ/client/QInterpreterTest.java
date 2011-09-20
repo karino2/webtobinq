@@ -341,6 +341,14 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_asNumeric() throws RecognitionException
+	{
+		int expected = 127;
+		QObject actual = callEvalExpr("as.numeric(\"123\")+4");
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
 	public void test_evalExpr_cumsum() throws RecognitionException
 	{
 		QObject actual = callEvalExpr("cumsum(1:3)");

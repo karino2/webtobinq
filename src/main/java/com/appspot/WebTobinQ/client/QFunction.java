@@ -476,6 +476,20 @@ public class QFunction extends QObject {
 		};
 	}
 
+	// as.numeric
+	public static QFunction createAsNumeric()
+	{
+		return new QFunction(parseFormalList("obj"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get("obj");
+				if(arg.isNull())
+					throw new RuntimeException("Argument of as.numeric should be one object");
+				return QObject.createNumeric(Double.valueOf((String)arg.getValue()));				
+			}
+		};
+	}
 	
 	public String toString()
 	{
