@@ -396,6 +396,16 @@ public class QTypesTest {
 	}
 	
 	@Test
+	public void test_JSONTable_3row()
+	{
+		JSONTable jt = new JSONTableForTest(new String[]{ "日付", "GDP", "消費" }, 
+				new String[] {"integer", "numeric", "numeric"},
+				new Object[] { new Object[]{1980.0, 312712.7, 174382.7}, new Object[]{1981.0, 321490.5, 177074.9}, new Object[]{1982.0, 331710.7 ,184799.3}});
+		assertEquals(3, jt.getRowNum());
+		assertEquals(184799.3, jt.getItemNumeric(2, 2));
+	}
+	
+	@Test
 	public void test_createDataFrameFromJSONTable()
 	{
 		JSONTable jt = new JSONTableForTest(new String[]{ "日付", "GDP", "消費" }, 
@@ -403,6 +413,16 @@ public class QTypesTest {
 				new Object[] { new Object[]{1980.0, 312712.7, 174382.7}, new Object[]{1981.0, 321490.5, 177074.9}});
 		QList df = QList.createDataFrameFromJSONTable(jt);
 		assertEquals("  日付     GDP      消費      \n1 1980.0 312712.7 174382.7\n2 1981.0 321490.5 177074.9\n", df.toString());
+	}
+	
+	@Test
+	public void test_createDataFrameFromJSONTable_3row()
+	{
+		JSONTable jt = new JSONTableForTest(new String[]{ "日付", "GDP", "消費" }, 
+				new String[] {"integer", "numeric", "numeric"},
+				new Object[] { new Object[]{1980.0, 312712.7, 174382.7}, new Object[]{1981.0, 321490.5, 177074.9}, new Object[]{1982.0, 331710.7 ,184799.3}});
+		QList df = QList.createDataFrameFromJSONTable(jt);
+		assertEquals("  日付     GDP      消費      \n1 1980.0 312712.7 174382.7\n2 1981.0 321490.5 177074.9\n3 1982.0 331710.7 184799.3\n", df.toString());
 	}
 	
 	@Test

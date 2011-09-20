@@ -24,7 +24,9 @@ public class QList extends QObject {
 	public QObject getBBInt(int i)
 	{
 		if(isDataFrame())
+		{
 			return get(i).get(0);
+		}
 		return get(i); // currently, get of list return contents.
 	}
 	
@@ -208,7 +210,6 @@ public class QList extends QObject {
 		
 		copyDatas(table, cols);
 		
-		// inside set, col is copied. so you must call here.
 		for(int k = 0; k < table.getColumnNum(); k++)
 		{
 			ret.set(k, cols.get(k));
@@ -365,6 +366,11 @@ public class QList extends QObject {
 	{
 		return get(col).get(0).get(row);
 	}
+	boolean isPartialDataFrame()
+	{
+		return (getLength() == 0 ||
+				getLength() == 1);
+	}
 	void rawSetByRowCol(int row, int col, QObject obj)
 	{
 		// column of data.frame is also data.frame.
@@ -372,8 +378,13 @@ public class QList extends QObject {
 		// But as a implementation point of view, some kind of bootstrap is necessary.
 		// I use partial data.frame for column, that is, contents of first element is vector.
 		// So here is one those kind of special handling.
-		if(row == 0 && col == 0)
-			set(0, obj);
+		if(isPartialDataFrame() && col== 0)
+		{
+			if(row == 0)
+				set(0, obj);
+			else
+				get(0).set(row, obj);
+		}
 		else
 			get(col).get(0).set(row, obj);		
 	}
