@@ -73,6 +73,15 @@ public class QInterpreterTest {
 		assertQNumericEquals(expected, actual);
 	}
 
+	@Test
+	public void test_evalExpr_and() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("1:3>1 & 1:3<3");
+		assertEquals(3, actual.getLength());
+		assertEquals(false, actual.get(0).isTrue());
+		assertEquals(true, actual.get(1).isTrue());
+		assertEquals(false, actual.get(2).isTrue());
+	}
 	
 	@Test
 	public void test_evalExpr_exprList() throws RecognitionException
@@ -220,29 +229,82 @@ public class QInterpreterTest {
 		Tree tree = parseExpression(code);
 		return _intp.evalSubscriptBB(tree);
 	}
+	
+	@Test
+	public void test_evalEq_true()
+	{
+		verifyEq(true, 1, 1);		
+	}
 
+	@Test
+	public void test_evalEq_false()
+	{
+		verifyEq(false, 1, 2);		
+	}
+	
+	@Test
+	public void test_evalNe_true()
+	{
+		verifyNe(true, 1, 2);		
+	}
+
+	@Test
+	public void test_evalNe_false()
+	{
+		verifyNe(false, 1, 1);		
+	}
+
+	
+	static interface BinaryCallable {
+		QObject evalBinary(QObject a1, QObject a2);
+	}
+	
+	void verifyBinary(boolean expected, int arg1, int arg2, BinaryCallable callable) {
+		QObject expectedObj = createLogical(expected);
+
+		QObject arg1Obj = createNumeric(arg1);
+		QObject arg2Obj = createNumeric(arg2);
+		QObject actual = callable.evalBinary(arg1Obj, arg2Obj);
+		
+		assertEquals(expectedObj, actual);
+		
+	}
+	
+	void verifyNe(boolean expected, int arg1, int arg2) {
+		verifyBinary(expected, arg1, arg2, new BinaryCallable() {			
+			public QObject evalBinary(QObject a1, QObject a2) {
+				return _intp.evalNE(a1, a2);
+			}
+		});
+	}
+
+	
+	void verifyEq(boolean expected, int arg1, int arg2) {
+		verifyBinary(expected, arg1, arg2, new BinaryCallable() {			
+			public QObject evalBinary(QObject a1, QObject a2) {
+				return _intp.evalEQ(a1, a2);
+			}
+		});
+	}
+
+	void verifyLe(boolean expected, int arg1, int arg2) {
+		verifyBinary(expected, arg1, arg2, new BinaryCallable() {			
+			public QObject evalBinary(QObject a1, QObject a2) {
+				return _intp.evalLE(a1, a2);
+			}
+		});
+	}
+	
 	@Test
 	public void test_evalLE_oneLe_true()
 	{
-		QObject expected = createLogical(true);
-
-		QObject arg1 = createNumeric(1);
-		QObject arg2 = createNumeric(2);
-		QObject actual = _intp.evalLE(arg1, arg2);
-		
-		assertEquals(expected, actual);		
+		verifyLe(true, 1, 2);
 	}
 	
 	@Test
 	public void test_evalLE_oneLe_false()
 	{
-		QObject expected = createLogical(false);
-
-		QObject arg1 = createNumeric(2);
-		QObject arg2 = createNumeric(1);
-		QObject actual = _intp.evalLE(arg1, arg2);
-		
-		assertEquals(expected, actual);		
+		verifyLe(false, 2, 1);
 	}
 	
 	@Test

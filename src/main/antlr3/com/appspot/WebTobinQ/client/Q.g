@@ -157,7 +157,7 @@ additive_op
 
 relationalOp
 	:
-	 (LT | LE | EQ | NE | GE | GT | AND | OR | AND2 | OR2 )
+	 (LT | LE | EQ | NE | GE | GT | AND2 | OR2 )
 	;
 
 assign_op:
@@ -195,6 +195,21 @@ multiplicativeExpression
 	  )?
     ;
 
+inclusiveOrExpression
+    :   (andExpression -> andExpression)
+	 ( OR inclusiveOrExpression
+		  -> ^(XXBINARY OR andExpression inclusiveOrExpression)
+	)?
+    ;
+
+andExpression
+    :   (relationalExpression -> relationalExpression)
+	 ( AND andExpression
+		  -> ^(XXBINARY AND relationalExpression andExpression)
+	)?
+    ;
+
+
 relationalExpression
     :   (additiveExpression -> additiveExpression)
 	 ( relationalOp relationalExpression
@@ -202,10 +217,10 @@ relationalExpression
 	)?
     ;
 	  
-expr	: (relationalExpression ->relationalExpression)
+expr	: (inclusiveOrExpression ->inclusiveOrExpression)
 	    (
 		assign_op expr
-		  -> ^(XXBINARY assign_op relationalExpression expr)
+		  -> ^(XXBINARY assign_op inclusiveOrExpression expr)
 	    )?
 	;
 

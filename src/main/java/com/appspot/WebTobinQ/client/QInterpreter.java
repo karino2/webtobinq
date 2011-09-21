@@ -524,15 +524,20 @@ public class QInterpreter {
 		}
 		funcEnv.put(ARGNAME, args);
 	}
+	
+	interface binaryOperable {
+		QObject execute(QObject i, QObject j);
+	}
+
 
 	interface doubleBinaryOperable {
 		QObject execute(double i, double j);
 	}
 	
-	QObject evalBinaryDouble(QObject arg1, QObject arg2, doubleBinaryOperable op)
+	QObject evalBinaryGeneric(QObject arg1, QObject arg2, binaryOperable op)
 	{
 		if(arg1.getLength() == 1 &&arg2.getLength() == 1)
-			return op.execute(arg1.getDouble(),arg2.getDouble());
+			return op.execute(arg1,arg2);
 		QObjectBuilder bldr = new QObjectBuilder();
 		QObject r1 = arg1;
 		QObject r2 = arg2;
@@ -542,13 +547,21 @@ public class QInterpreter {
 			r1 = arg1.recycle(r2.getLength());	
 		for(int i = 0; i < r1.getLength(); i++)
 		{
-			double i1 = r1.get(i).getDouble();
-			double i2 = r2.get(i).getDouble();
-			QObject q = op.execute(i1, i2);
+			QObject q = op.execute(r1.get(i), r2.get(i));
 			bldr.add(q);
 		}
 		return bldr.result();
 		
+	}
+
+	
+	QObject evalBinaryDouble(QObject arg1, QObject arg2, final doubleBinaryOperable op)
+	{
+		return evalBinaryGeneric(arg1, arg2, new binaryOperable() {
+			public QObject execute(QObject i, QObject j) {
+				return op.execute(i.getDouble(), j.getDouble());
+			}			
+		});
 	}
 
 	QObject evalPlus(QObject arg1, QObject arg2)
@@ -629,6 +642,28 @@ public class QInterpreter {
 			
 		});
 	}
+	public QObject evalEQ(QObject arg1, QObject arg2) {
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public QObject execute(double i, double j) {
+				return QObject.createLogical(i == j);
+			}
+			
+		});
+	}
+	public QObject evalNE(QObject arg1, QObject arg2) {
+		return evalBinaryDouble(arg1, arg2, new doubleBinaryOperable() {
+			public QObject execute(double i, double j) {
+				return QObject.createLogical(i != j);
+			}
+		});
+	}
+	public QObject evalAND(QObject arg1, QObject arg2) {
+		return evalBinaryGeneric(arg1, arg2, new binaryOperable() {
+			public QObject execute(QObject i, QObject j) {
+				return QObject.createLogical(i.isTrue() && j.isTrue());
+			}
+		});
+	}
 	
 	public QObject evalBinary(Tree op, Tree arg1, Tree arg2) {
 		if(QParser.LEFT_ASSIGN == op.getType() ||
@@ -680,6 +715,18 @@ public class QInterpreter {
 		{
 			return evalGE(term1, term2);
 		}
+		else if(QParser.EQ == op.getType())
+		{
+			return evalEQ(term1, term2);
+		}
+		else if(QParser.NE == op.getType())
+		{
+			return evalNE(term1, term2);
+		}
+		else if(QParser.AND == op.getType())
+		{
+			return evalAND(term1, term2);
+		}
 		else if(":".equals(op.getText()))
 		{
 			Environment funcEnv = new Environment(_curEnv);
@@ -726,4 +773,6 @@ public class QInterpreter {
 			println(ret.toString());
 		return ret;
 	}
+
+
 }
