@@ -112,6 +112,12 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
 			eval(codes);
 		}
 		});
+      final Button evalRegionButton = new Button("Eval Region", new ClickHandler() {
+		public void onClick(ClickEvent event) {
+			String codes = inputArea.getSelectedText();
+			eval(codes);
+		}      
+      });
       final Button clearButton = new Button("Clear Console", new ClickHandler(){
 
 		public void onClick(ClickEvent event) {
@@ -119,6 +125,7 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
 		}});
 
     evalButton.addStyleName("evalButton");
+    evalRegionButton.addStyleName("evalButton");
     clearButton.addStyleName("clearButton");
     
     
@@ -126,6 +133,7 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
     RootPanel.get("inputAreaContainer").add(inputArea);
     RootPanel.get("evalButtonContainer").add(evalButton);
     RootPanel.get("clearButtonContainer").add(clearButton);
+    RootPanel.get("evalRegionButtonContainer").add(evalRegionButton);
     RootPanel.get("consoleAreaContainer").add(consoleArea);
 
     inputArea.setFocus(true);
