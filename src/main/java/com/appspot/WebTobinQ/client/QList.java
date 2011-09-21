@@ -34,7 +34,7 @@ public class QList extends QObject {
 	public QObject getBB(QObject arg)
 	{
 		if(arg.isNumber())
-			return getBBInt(arg.getInt());
+			return getBBInt(arg.getInt()-1);
 		if(arg.getMode() != CHARACTER_TYPE)
 			throw new RuntimeException("Arg of [[]] neither number nor string: " + arg.getMode());
 		String colName = (String)arg.getValue();

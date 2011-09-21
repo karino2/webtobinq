@@ -192,6 +192,21 @@ public class QInterpreterTest {
 		assertEquals("numeric", actual.getMode());
 	}
 	
+	@Test
+	public void test_evalExpr_dataFrame_subscriptBB_int() throws RecognitionException
+	{
+		// setup
+		callEvalExpr("x<-1:3");
+		callEvalExpr("y<-4:6");
+		callEvalExpr("df<-data.frame(x, y)");
+
+		// R is 1 origin index.
+		QObject actual = callSubscriptBB("df[[1]]");
+
+		assertQNumericEquals(1, actual.get(0));
+	}
+
+	
 	private QObject callSubscriptBB(String code) throws RecognitionException {
 		Tree tree = parseExpression(code);
 		return _intp.evalSubscriptBB(tree);
