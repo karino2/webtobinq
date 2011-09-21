@@ -578,7 +578,7 @@ public class QInterpreterTest {
 		assertQNumericEquals(5, actual.get(1));
 	}
 		
-	public static QObject createNumeric(int i) {
+	static public QObject createNumeric(int i) {
 		return QObject.createNumeric(i);
 	}
 
