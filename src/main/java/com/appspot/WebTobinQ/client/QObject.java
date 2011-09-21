@@ -124,6 +124,10 @@ public class QObject {
 			else
 				return "FALSE";
 		}
+		else if(obj.getMode() == QObject.CHARACTER_TYPE)
+		{
+			return "\"" + obj._val.toString() + "\"";
+		}
 		else
 		{
 			if(obj.getMode() == "NULL")
@@ -131,7 +135,7 @@ public class QObject {
 			return obj._val.toString();
 		}
 	}
-		
+	
 	public String toString()
 	{
 		if(_vector == null)
@@ -378,5 +382,12 @@ public class QObject {
 			bldr.add(q);
 		}
 		return bldr.result();
+	}
+
+	String toRawString() {
+		if(getMode() == QObject.CHARACTER_TYPE)
+			return (String)getValue();
+		else
+			return toString();
 	}
 }

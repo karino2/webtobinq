@@ -143,7 +143,7 @@ public class QList extends QObject {
 		QObject names = getNamesAttr();
 		
 		ArrayList<Integer> colMaxLength = new ArrayList<Integer>();
-		colMaxLength.add(0,maxStrLength(rowNames));
+		colMaxLength.add(0,maxRawStrLength(rowNames));
 		StringBuffer buf = new StringBuffer();
 	
 		// print header
@@ -153,9 +153,9 @@ public class QList extends QObject {
 			buf.append(" ");
 			
 			QObject name = names.get(i);
-			int nameLen = name.toString().length();
-			colMaxLength.add(i+1, Math.max(nameLen, maxStrLength(get(i).get(0))));
-			buf.append(name.toString());
+			int nameLen = name.toRawString().length();
+			colMaxLength.add(i+1, Math.max(nameLen, maxRawStrLength(get(i).get(0))));
+			buf.append(name.toRawString());
 			appendSpace(buf, colMaxLength.get(i+1) - nameLen);
 		}
 		buf.append("\n");
@@ -164,15 +164,11 @@ public class QList extends QObject {
 		QObject firstVector = firstList.get(0);
 		for(int i = 0; i < firstVector.getLength(); i++)
 		{
-			String rowName = rowNames.get(i).toString();
+			String rowName = rowNames.get(i).toRawString();
 			buf.append(rowName);
 			appendSpace(buf, colMaxLength.get(0) - rowName.length());
 			for(int j = 0; j < getLength(); j++) {
 				buf.append(" ");
-				/*
-				QObject dfSub = get(j);
-				String val = dfSub.get(0).get(i).toString();
-				*/
 				String val = rawGetByRowCol(i, j).toString();
 				buf.append(val);
 				appendSpace(buf, colMaxLength.get(j+1) - val.length());
@@ -186,11 +182,11 @@ public class QList extends QObject {
 			buf.append(" ");
 	}
 
-	private int maxStrLength(QObject rowNames) {
+	private int maxRawStrLength(QObject rowNames) {
 		int max = 0;
 		for(int i = 0; i < rowNames.getLength(); i++)
 		{
-			int l = rowNames.get(i).toString().length();
+			int l = rowNames.get(i).toRawString().length();
 			if(max < l)
 				max = l;
 		}
