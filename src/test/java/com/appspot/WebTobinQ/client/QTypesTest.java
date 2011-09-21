@@ -130,6 +130,24 @@ public class QTypesTest {
 	}
 	
 	@Test
+	public void test_vector_subscript() {
+		int expected = 2;
+		QObject vect = createVector123("x");
+		// 1 origin.
+		QObject actual = vect.subscriptByNumber(QObject.createNumeric(2));
+		assertQNumericEquals(expected, actual);
+	}
+	
+	@Test
+	public void test_vector_subscriptNegative() {
+		QObject vect = createVector123("x");
+		QObject actual = vect.subscriptByNumber(QObject.createNumeric(-1));
+		assertEquals(2, actual.getLength());
+		assertQNumericEquals(2, actual.get(0));
+		assertQNumericEquals(3, actual.get(1));
+	}
+	
+	@Test
 	public void test_dataFrame() {
 		QObject df = QList.createDataFrame();
 		assertEquals("list", df.getMode());

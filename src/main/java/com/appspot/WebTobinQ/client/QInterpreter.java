@@ -335,9 +335,7 @@ public class QInterpreter {
 		if(sublistTree.getChildCount() == 1)
 		{
 			QObject range = evalExpr(sublistTree.getChild(0).getChild(0));
-			if(range.getMode() == "logical")
-				return subscriptByLogical(lexpr, range);
-			return subscriptByNumber(lexpr, range);
+			return lexpr.subscriptByOneArg(range);
 		}
 		else // sublistTree.getChildCount() == 2
 		{
@@ -373,37 +371,6 @@ public class QInterpreter {
 			throw new RuntimeException("Sublist with assign: gramatically accepted, but what situation?");
 	}
 	
-	private QObject subscriptByLogical(QObject lexpr, QObject range) {
-		if(range.getLength() != lexpr.getLength())
-			throw new RuntimeException("subscriptByLogical: length of logical list and lexpr is different");
-		QObjectBuilder bldr = new QObjectBuilder();
-		for(int i = 0; i < range.getLength(); i++)
-		{
-			QObject bool = range.get(i);
-			if(QObject.TRUE.equals(bool))
-				bldr.add(lexpr.get(i));
-				
-		}
-		return bldr.result();
-	}
-
-	private QObject subscriptByNumber(QObject lexpr, QObject range) {
-		if(range.getLength () == 1)
-		{
-			int  index = range.getInt();
-			return lexpr.get(index-1);
-		}
-		QObjectBuilder bldr = new QObjectBuilder();
-		for(int i = 0; i < range.getLength(); i++)
-		{
-			int index = range.get(i).getInt();
-			QObject q = lexpr.get(index-1);
-			bldr.add(q);
-		}
-		return bldr.result();
-	}
-
-
 	// (XXFUNCALL c (XXSUBLIST (XXSUB1 1) (XXSUB1 2)))
 	QObject evalCallFunction(Tree term) {
 		QObject funcCand = (QObject)_curEnv.get(term.getChild(0).getText());

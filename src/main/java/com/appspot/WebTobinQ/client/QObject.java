@@ -332,4 +332,51 @@ public class QObject {
 		return QList.LIST_TYPE.equals(getMode()) &&
 			QList.DATAFRAME_CLASS.equals(getQClass());
 	}
+
+	QObject subscriptByOneArg(QObject range) {
+		if(range.getMode() == "logical")
+			return subscriptByLogical(range);
+		return subscriptByNumber(range);
+	}
+
+	QObject subscriptByLogical(QObject range) {
+		if(range.getLength() != getLength())
+			throw new RuntimeException("subscriptByLogical: length of logical list and lexpr is different");
+		QObjectBuilder bldr = new QObjectBuilder();
+		for(int i = 0; i < range.getLength(); i++)
+		{
+			QObject bool = range.get(i);
+			if(QObject.TRUE.equals(bool))
+				bldr.add(get(i));
+				
+		}
+		return bldr.result();
+	}
+
+	QObject subscriptByNumber(QObject range) {
+		if(range.getLength () == 1)
+		{
+			int  index = range.getInt();
+			if(index > 0)
+				return get(index-1);
+			// negative index, remove.
+			QObjectBuilder bldr = new QObjectBuilder();
+			for(int i = 0; i < getLength(); i++)
+			{
+				if(i != (-index)-1)
+				{
+					bldr.add(get(i));
+				}
+			}
+			return bldr.result();
+		}
+		QObjectBuilder bldr = new QObjectBuilder();
+		for(int i = 0; i < range.getLength(); i++)
+		{
+			int index = range.get(i).getInt();
+			QObject q = get(index-1);
+			bldr.add(q);
+		}
+		return bldr.result();
+	}
 }
