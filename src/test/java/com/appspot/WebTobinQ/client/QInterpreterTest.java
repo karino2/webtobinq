@@ -66,6 +66,15 @@ public class QInterpreterTest {
 	}
 	
 	@Test
+	public void test_evalExpr_minus() throws RecognitionException
+	{
+		int expected = -3;
+		QObject actual = callEvalExpr("-3");
+		assertQNumericEquals(expected, actual);
+	}
+
+	
+	@Test
 	public void test_evalExpr_exprList() throws RecognitionException
 	{
 		int expected = 5;

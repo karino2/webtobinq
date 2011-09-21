@@ -216,8 +216,24 @@ public class QInterpreter {
 		// 		// (XXDEFUN XXFORMALLIST (XXEXPRLIST 1 2))
 		if(term.getType() == QParser.XXDEFUN)
 			return new QFunction(term.getChild(0), term.getChild(1));
+		if(term.getType() == QParser.XXUNARY)
+			return evalUnary(term);
 		System.out.println(term.getType());
 		throw new RuntimeException("NYI2:" + term.getType());
+	}
+
+	QObject evalUnary(Tree term) {
+		// (XXUNARY - 3)
+		if("-".equals(term.getChild(0).getText()))
+		{
+			QObject target = evalExpr(term.getChild(1));
+			QObjectBuilder bldr = new QObjectBuilder();
+			for(int i = 0; i < target.getLength(); i++) {
+				bldr.add(QObject.createNumeric(-target.get(i).getDouble()));
+			}
+			return bldr.result();
+		}
+		throw new RuntimeException("NYI unary: " + term.getChild(0).getText());
 	}
 
 	// "(XXFOR (XXFORCOND i (XXBINARY : 1 10)) (XXEXPRLIST (XXBINARY <- b (XXBINARY * i 2)) (XXBINARY <- e (XXBINARY * i 13))))
