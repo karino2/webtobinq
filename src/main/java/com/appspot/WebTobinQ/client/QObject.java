@@ -7,6 +7,7 @@ import java.util.Map;
 public class QObject {
 	// typename
 	public static final String CHARACTER_TYPE = "character";
+	public static final String NUMERIC_TYPE = "numeric";
 	
 	
 	public static final QObject NA = new QObject("logical");

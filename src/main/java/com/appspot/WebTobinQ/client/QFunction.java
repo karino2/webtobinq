@@ -484,13 +484,42 @@ public class QFunction extends QObject {
 			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
 			{
 				QObject arg = funcEnv.get("obj");
-				if(arg.isNull())
-					throw new RuntimeException("Argument of as.numeric should be one object");
-				return QObject.createNumeric(Double.valueOf((String)arg.getValue()));				
+				return asNumeric(arg);				
 			}
 		};
 	}
 	
+	static QObject asNumeric(QObject arg) {
+		if(arg.isNull())
+			throw new RuntimeException("Argument of as.numeric should be one object");
+		if(QObject.CHARACTER_TYPE.equals(arg.getMode())) {
+			QObjectBuilder bldr = new QObjectBuilder();
+			for(int i = 0; i < arg.getLength(); i++) {
+				bldr.add(QObject.createNumeric(Double.valueOf((String)arg.get(i).getValue())));
+			}
+			return bldr.result();
+		}
+		if(QList.DATAFRAME_CLASS.equals(arg.getQClass()))
+		{
+			QList dfArg = (QList)arg;
+			QObjectBuilder bldr = new QObjectBuilder();
+			for(int i = 0; i < dfArg.getLength(); i++)
+			{
+				QObject col = dfArg.getBBInt(i);
+				if(col.getLength() != 1)
+					throw new RuntimeException("as.numeric: unsupported data.frame dimension.");
+				if(QObject.CHARACTER_TYPE.equals(col.getMode()))
+					bldr.add(QObject.createNumeric(Double.valueOf((String)col.getValue())));
+				else if(QObject.NUMERIC_TYPE.equals(col.getMode()))
+					bldr.add(QObject.createNumeric((Double)col.getValue()));
+				else
+					throw new RuntimeException("as.numeric: unsupported df element type");
+			}
+			return bldr.result();
+		}
+		throw new RuntimeException("as.numeric: unsupported argument");
+	}
+
 	public String toString()
 	{
 		return "function ...";

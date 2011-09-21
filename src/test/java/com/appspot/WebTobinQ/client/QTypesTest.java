@@ -192,7 +192,7 @@ public class QTypesTest {
 	public void test_list_getBB_numericAccess()
 	{
 		QList l = createListOfX12();
-		QObject xvector = l.getBB(createNumeric(0));
+		QObject xvector = l.getBB(createNumeric(1));
 		assertEquals(createVector12("X"), xvector);
 	}
 	
@@ -225,17 +225,29 @@ public class QTypesTest {
 	public void test_dataFrameFromVector_contents_row1() {
 		QObject x = createVector12("x");
 		QObject y = createVector12("y");
-		QList df = createDataFrame(x, y);
+		QList df = createDataFrame2(x, y);
 		
 		assertEquals(y, df.getBBInt(1));
 	}
 
-	private QList createDataFrame(QObject x, QObject y) {
-		QObject args = QList.createList();
-		args.set(0, x);
-		args.set(1, y);		
+	private QList createDataFrame3(QObject x, QObject y, QObject z) {
+		QObject args = createList12(x, y);		
+		args.set(2, z);
 		QList df = QList.createDataFrameFromVector(args);
 		return df;
+	}
+	
+	private QList createDataFrame2(QObject x, QObject y) {
+		QObject args = createList12(x, y);		
+		QList df = QList.createDataFrameFromVector(args);
+		return df;
+	}
+
+	private QObject createList12(QObject x, QObject y) {
+		QObject args = QList.createList();
+		args.set(0, x);
+		args.set(1, y);
+		return args;
 	}
 	
 	@Test
@@ -254,10 +266,52 @@ public class QTypesTest {
 		assertQNumericEquals(2, actual.getBBInt(1));	
 	}
 
+	@Test
+	public void test_dataFrame_asnumeric() {
+		/*   x y z
+		 * 1 1 2 3
+		 */
+		QList df = create123DataFrame();
+		
+		QObject actual_vect = QFunction.asNumeric(df);
+		
+		assertVector123(actual_vect);
+	}
+	
+	@Test
+	public void test_characterVector_asnumeric() {
+		QObject charVect = QObject.createCharacter("1");
+		charVect.set(1, QObject.createCharacter("2"));
+		charVect.set(2, QObject.createCharacter("3"));
+
+		QObject actual_vect = QFunction.asNumeric(charVect);
+		
+		assertVector123(actual_vect);
+	}
+
+	void assertVector123(QObject actual_vect) {
+		assertEquals(3, actual_vect.getLength());
+		assertEquals(QObject.NUMERIC_TYPE, actual_vect.getMode());
+		assertQNumericEquals(1, actual_vect.get(0));
+		assertQNumericEquals(2, actual_vect.get(1));	
+		assertQNumericEquals(3, actual_vect.get(2));
+	}
+	
 	private QList create123x123DataFrame() {
 		QObject x = createVector123("x");
 		QObject y = createVector123("y");
-		QList df = createDataFrame(x, y);
+		QList df = createDataFrame2(x, y);
+		return df;
+	}
+	
+	private QList create123DataFrame() {
+		QObject x = QObject.createNumeric(1);
+		setNameAttr("x", x);
+		QObject y = QObject.createNumeric(2);
+		setNameAttr("y", y);
+		QObject z = QObject.createNumeric(3);
+		setNameAttr("z", z);
+		QList df = createDataFrame3(x, y, z);
 		return df;
 	}
 	
@@ -322,8 +376,12 @@ public class QTypesTest {
 	private QObject createVector12(String name) {
 		QObject x = QObject.createNumeric(1);
 		x.set(1, QObject.createNumeric(2));
-		x.setAttribute("names", QObject.createCharacter(name));
+		setNameAttr(name, x);
 		return x;
+	}
+
+	private void setNameAttr(String name, QObject obj) {
+		obj.setAttribute("names", QObject.createCharacter(name));
 	}
 	
 	private QObject createVector123(String name) {
