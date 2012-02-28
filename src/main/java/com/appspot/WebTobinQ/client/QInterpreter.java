@@ -34,6 +34,7 @@ public class QInterpreter {
 		_curEnv.put("read.server", QFunction.createReadServer(_retrievable));
 		_curEnv.put("attributes", QFunction.createAttributes());
 		_curEnv.put("as.numeric", QFunction.createAsNumeric());
+		_curEnv.put("is.null", QFunction.createIsNull());
 	}
 
 	public QInterpreter(Writable console) {

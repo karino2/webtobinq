@@ -475,6 +475,21 @@ public class QFunction extends QObject {
 			}
 		};
 	}
+	
+	// is.null
+	public static QFunction createIsNull()
+	{
+		return new QFunction(parseFormalList("obj"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get("obj");
+				if(QObject.Null.equals(arg))
+					return QObject.TRUE;
+				return QObject.FALSE;
+			}
+		};
+	}
 
 	// as.numeric
 	public static QFunction createAsNumeric()

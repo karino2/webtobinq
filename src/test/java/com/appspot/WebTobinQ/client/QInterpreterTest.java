@@ -523,7 +523,21 @@ public class QInterpreterTest {
 		assertQNumericEquals(1, actual.get(0));
 		assertQNumericEquals(2, actual.get(1));
 	}
+	
+	@Test
+	public void test_evalExpr_isnull_FALSE() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("is.null(FALSE)");
+		assertEquals(QObject.FALSE, actual);
+	}
 
+	@Test
+	public void test_evalExpr_isnull_TRUE() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("is.null(NULL)");
+		assertEquals(QObject.TRUE, actual); 		
+	}
+	
 	private QObject callEvalExpr(String code) throws RecognitionException {
 		Tree tree = parseExpression(code);
 		QObject actual = _intp.evalExpr(tree);
