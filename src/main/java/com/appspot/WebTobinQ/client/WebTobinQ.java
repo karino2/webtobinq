@@ -87,6 +87,7 @@ public class WebTobinQ implements EntryPoint, Plotable, JSONPTableRetriever.Resu
 
 	  _console = new TextAreaConsole(consoleArea);
 	  _interpreter = new QInterpreter(_console, this, new JSONPTableRetriever(this));
+	  _interpreter.loadStaticScripts();
 
 	  // use keyup because some eval (like plot) loose focus and fail to invoke default event.
 	  inputArea.addKeyUpHandler(new KeyUpHandler(){

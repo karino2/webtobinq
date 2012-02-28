@@ -35,10 +35,15 @@ public class QInterpreter {
 		_curEnv.put("attributes", QFunction.createAttributes());
 		_curEnv.put("as.numeric", QFunction.createAsNumeric());
 	}
-	
+
 	public QInterpreter(Writable console) {
 		this(console, null, null);
 	}	
+	
+	public void loadStaticScripts()
+	{
+		_console.write(ScriptResources.INSTANCE.hpfilter().getText());
+	}
 	
 	
 	Plotable _plotable;
