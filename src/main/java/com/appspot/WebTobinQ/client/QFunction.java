@@ -548,6 +548,13 @@ public class QFunction extends QObject {
 				QObject choices = funcEnv.get("choices");
 				if(arg.getLength() > 1)
 					throw new RuntimeException("first argument of match.arg is not scalar.");
+				if(choices == null)
+				{
+					Tree orgVal = funcEnv.getSexp("arg");
+					if(orgVal.getType() != QParser.SYMBOL)
+						throw new RuntimeException("match.arg, arg's caller sexp is not symbol. what situation? :" + orgVal.toStringTree());
+					choices = funcEnv.getDefaultValue(orgVal.getText());
+				}
 				String argStr = (String)arg.getValue();
 				for(int i = 0; i < choices.getLength(); i++)
 				{

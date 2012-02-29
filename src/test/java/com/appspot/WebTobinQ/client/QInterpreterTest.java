@@ -595,6 +595,14 @@ public class QInterpreterTest {
 		assertEquals("\"hoge\"", actual.toString());
 	}
 	
+	@Test
+	public void test_eval_matchArg_defaultArg()
+	{
+		QObject actual = _intp.eval("f <- function(tp = c(\"foo\", \"bar\", \"baz\") { match.arg(tp); }\nf(\"ba\")");
+		assertQCharEquals("bar", actual);
+	}
+
+	
 	private QObject callEvalExpr(String code) throws RecognitionException {
 		Tree tree = parseExpression(code);
 		QObject actual = _intp.evalExpr(tree);

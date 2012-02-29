@@ -452,6 +452,20 @@ public class QInterpreter {
 		handleXXSub(subList, formalList, funcEnv, assigned);
 		
 		assignRemainingDefaultArguments(formalList, funcEnv, assigned);
+		storeDefaultArg(formalList, funcEnv);
+	}
+
+	// (XXFORMALLIST (XXFORMAL0 beg) (XXFORMAL1 end 10))
+	private void storeDefaultArg(Tree formalList, Environment funcEnv) {
+		for(int i = 0; i < formalList.getChildCount(); i++)
+		{
+			Tree formArg = formalList.getChild(i);
+			if(formArg.getType() != QParser.XXFORMAL1)
+				continue;
+			Tree sym = formArg.getChild(0);
+			Tree val = formArg.getChild(1);
+			funcEnv.putDefault(sym.getText(), evalExpr(val));
+		}
 	}
 
 	void assignRemainingDefaultArguments(Tree formalList, Environment funcEnv,
