@@ -537,6 +537,29 @@ public class QFunction extends QObject {
 		throw new RuntimeException("as.numeric: unsupported argument");
 	}
 	
+	// match.arg
+	public static QFunction createMatchArg()
+	{
+		return new QFunction(parseFormalList("arg, choices, several.ok = FALSE"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get("arg");
+				QObject choices = funcEnv.get("choices");
+				if(arg.getLength() > 1)
+					throw new RuntimeException("first argument of match.arg is not scalar.");
+				String argStr = (String)arg.getValue();
+				for(int i = 0; i < choices.getLength(); i++)
+				{
+					String target = (String)choices.get(i).getValue();
+					if(target.startsWith(argStr))
+						return choices.get(i);
+				}
+				throw new RuntimeException("[arg] should match to one of the member of [choices]");
+			}
+		};
+	}
+	
 	// substitute
 	public static QFunction createSubstitute()
 	{

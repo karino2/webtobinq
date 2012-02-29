@@ -581,6 +581,20 @@ public class QInterpreterTest {
 		assertEquals("\"1+2+a\"", actual.toString());
 	}
 	
+	@Test
+	public void test_evalExpr_matchArg_exactMatch() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("match.arg(\"hoge\", c(\"ika\", \"fuga\", \"hoge\", \"higa\"))");
+		assertEquals("\"hoge\"", actual.toString());
+	}
+	
+	@Test
+	public void test_evalExpr_matchArg_partialMatch() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("match.arg(\"ho\", c(\"ika\", \"fuga\", \"hoge\", \"higa\"))");
+		assertEquals("\"hoge\"", actual.toString());
+	}
+	
 	private QObject callEvalExpr(String code) throws RecognitionException {
 		Tree tree = parseExpression(code);
 		QObject actual = _intp.evalExpr(tree);

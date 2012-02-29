@@ -37,6 +37,7 @@ public class QInterpreter {
 		_curEnv.put("is.null", QFunction.createIsNull());
 		_curEnv.put("substitute", QFunction.createSubstitute());
 		_curEnv.put("deparse", QFunction.createDeParse());
+		_curEnv.put("match.arg", QFunction.createMatchArg());
 	}
 
 	public QInterpreter(Writable console) {
