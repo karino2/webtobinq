@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.antlr.runtime.tree.Tree;
+
 public class QObject {
 	// typename
 	public static final String CHARACTER_TYPE = "character";
 	public static final String NUMERIC_TYPE = "numeric";
+	public static final String CALL_TYPE = "call"; // s expression.
 	
 	
 	public static final QObject NA = new QObject("logical");
@@ -58,6 +61,11 @@ public class QObject {
 	public static QObject createCharacter(String val)
 	{
 		return new QObject(CHARACTER_TYPE, val);
+	}
+	
+	public static QObject createCall(Environment env, Tree sexp)
+	{
+		return new QObject(CALL_TYPE, new Object[] {env, sexp});
 	}
 	
 	public QObject QClone() {
@@ -127,6 +135,14 @@ public class QObject {
 		else if(obj.getMode() == QObject.CHARACTER_TYPE)
 		{
 			return "\"" + obj._val.toString() + "\"";
+		}
+		else if(obj.getMode() == QObject.CALL_TYPE)
+		{
+			Object[] arr = (Object[])obj._val;
+			// arr[0]: env
+			// arr[1]: sexp
+			// temp implementation.
+			return ((Tree)arr[1]).toStringTree();
 		}
 		else
 		{
@@ -330,6 +346,13 @@ public class QObject {
 		}
 		list.setAttribute("names", names);
 		return list;
+	}
+	
+	public Tree getSexp() {
+		if(getMode() != "call")
+			return null;
+		Object[] arr = (Object[])_val;
+		return (Tree)arr[1];		
 	}
 
 	boolean isDataFrame() {

@@ -8,6 +8,8 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.Tree;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import com.appspot.WebTobinQ.client.ForestNode.Edge;
 import com.appspot.WebTobinQ.client.ForestNode.Traversable;
 import com.appspot.WebTobinQ.client.TableRetrievable.RetrieveArgument;
@@ -533,6 +535,96 @@ public class QFunction extends QObject {
 			return bldr.result();
 		}
 		throw new RuntimeException("as.numeric: unsupported argument");
+	}
+	
+	// substitute
+	public static QFunction createSubstitute()
+	{
+		return new QFunction(parseFormalList("expr, env"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				Tree sexp = funcEnv.getSexp("expr");
+				if(sexp.getType() == QParser.SYMBOL)
+				{
+					sexp = handleSymbol(funcEnv, sexp);
+				}
+				else
+				{
+					ForestIterater<Tree> iter = QInterpreter.createIterater(sexp);
+					while(iter.hasNext())
+					{
+						ForestNode<Tree> node = iter.next();
+						if(node.getEdge() == Edge.Trailing)
+							continue;
+						Tree t = node.getElement();
+						if(t.getType() == QParser.SYMBOL)
+						{
+							Tree newSexp = handleSymbol(funcEnv, t);
+							if(newSexp != t)
+							{
+								t.getParent().replaceChildren(t.getChildIndex(), t.getChildIndex(), newSexp);
+							}
+							continue;
+						}
+					}
+				}
+
+				return QObject.createCall(funcEnv, sexp);
+			}
+			private Tree handleSymbol(Environment funcEnv, Tree sexp) {
+				Tree newSexp = funcEnv.getSexp(sexp.getText());
+				if(newSexp != null)
+					sexp = newSexp;
+				return sexp;
+			}
+		};
+	}
+
+	// deparse
+	public static QFunction createDeParse()
+	{
+		return new QFunction(parseFormalList("obj"), null){
+			public boolean isPrimitive() {return true; }
+			public QObject callPrimitive(Environment funcEnv, QInterpreter intp)
+			{
+				QObject arg = funcEnv.get("obj");
+				if(arg.getMode() != "call")
+					throw new RuntimeException("not supported deparse with non-expression arg");
+				
+				StringBuffer buf = new StringBuffer();
+				Tree sexp = arg.getSexp();
+				recursivePrint(sexp, buf);
+				return QObject.createCharacter(buf.toString());
+			}
+			
+			private void recursivePrint(Tree sexp, StringBuffer buf) {
+				if(sexp.getType() == QParser.XXBINARY)
+				{
+					recursivePrint(sexp.getChild(1), buf);
+					buf.append(sexp.getChild(0).getText());
+					recursivePrint(sexp.getChild(2), buf);
+					return;
+				}
+				if(sexp.getType() == QParser.SYMBOL)
+				{
+					buf.append(sexp.getText());
+					return;
+				}
+				if(sexp.getType() == QParser.STR_CONST)
+				{
+					buf.append("\"");
+					buf.append(sexp.getText());
+					buf.append("\"");
+					return;
+				}
+				if(sexp.getType() == QParser.DecimalLiteral)
+				{
+					buf.append(sexp.getText());
+					return;
+				}
+			}
+		};
 	}
 
 	public String toString()

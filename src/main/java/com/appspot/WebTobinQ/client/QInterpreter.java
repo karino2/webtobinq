@@ -35,6 +35,8 @@ public class QInterpreter {
 		_curEnv.put("attributes", QFunction.createAttributes());
 		_curEnv.put("as.numeric", QFunction.createAsNumeric());
 		_curEnv.put("is.null", QFunction.createIsNull());
+		_curEnv.put("substitute", QFunction.createSubstitute());
+		_curEnv.put("deparse", QFunction.createDeParse());
 	}
 
 	public QInterpreter(Writable console) {
@@ -475,7 +477,7 @@ public class QInterpreter {
 				continue;
 			Tree formArg = getNextFormArgSym(formalList, assigned);
 			Tree val = node.getChild(0);
-			funcEnv.put(formArg.getText(), evalExpr(val));			
+			funcEnv.put(formArg.getText(), evalExpr(val), val);			
 			assigned.put(formArg.getText(), true);
 		}
 	}

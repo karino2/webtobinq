@@ -538,6 +538,49 @@ public class QInterpreterTest {
 		assertEquals(QObject.TRUE, actual); 		
 	}
 	
+	@Test
+	public void test_eval_substitute_insideFunction()
+	{
+		QObject actual = _intp.eval("f <- function(a) { substitute(a); }\nf(1+2+3)");
+		assertEquals("(XXBINARY + 1 (XXBINARY + 2 3))", actual.toString());
+	}
+
+	
+	@Test
+	public void test_evalExpr_substitute_justSymbol() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("substitute(a)");
+		assertEquals(actual._mode, "call");
+		Tree tree = actual.getSexp();
+		assertEquals(QParser.SYMBOL, tree.getType());
+		assertEquals("a", tree.getText());
+	}
+	
+	@Test
+	public void test_evalExpr_substitute() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("substitute(2 + 3)");
+		// This is not real expectation. But don't care about print expression of substitute now.
+		assertEquals("(XXBINARY + 2 3)", actual.toString());
+		
+	}
+	
+	@Test
+	public void test_evalExpr_deparse() throws RecognitionException
+	{
+		QObject actual = callEvalExpr("deparse(substitute(1+2+3))");
+		assertEquals("\"1+2+3\"", actual.toString());
+	}
+	
+	@Test
+	public void test_evalExpr_deparse_symbol() throws RecognitionException
+	{
+		// unbound symbol do not support now.
+		callEvalExpr("a<-1");
+		QObject actual = callEvalExpr("deparse(substitute(1+2+a))");
+		assertEquals("\"1+2+a\"", actual.toString());
+	}
+	
 	private QObject callEvalExpr(String code) throws RecognitionException {
 		Tree tree = parseExpression(code);
 		QObject actual = _intp.evalExpr(tree);
